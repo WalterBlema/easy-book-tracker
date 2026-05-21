@@ -520,13 +520,19 @@ async function signInGoogle(){
     showAuthError('Firebase ainda não configurado. Use "Continuar sem conta" ou edite firebase-config.js.');
     return;
   }
+  const { auth, authMod } = await fb();
+  const provider = new authMod.GoogleAuthProvider();
   try {
-    const { auth, authMod } = await fb();
-    const provider = new authMod.GoogleAuthProvider();
-    // Use redirect instead of popup — works on all browsers (iOS Safari, Firefox, etc.)
-    await authMod.signInWithRedirect(auth, provider);
-  } catch(e){
-    showAuthError(authErrMsg(e.code) || e.message);
+    // Popup is faster and doesn't reload the page; fallback to redirect if blocked
+    await authMod.signInWithPopup(auth, provider);
+  } catch(popupErr){
+    if(popupErr.code === 'auth/popup-blocked' || popupErr.code === 'auth/popup-closed-by-user'){
+      // Browser blocked the popup — fall back to full-page redirect
+      try { await authMod.signInWithRedirect(auth, provider); }
+      catch(e){ showAuthError(authErrMsg(e.code) || e.message); }
+    } else {
+      showAuthError(authErrMsg(popupErr.code) || popupErr.message);
+    }
   }
 }
 async function signInEmail(email, password, isCreate){
