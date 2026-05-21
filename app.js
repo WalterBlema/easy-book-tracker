@@ -351,7 +351,6 @@ const state = {
   user: null,                       // {uid, email, name, photo, isGuest}
   books: [],
   decorations: [],
-  stickers: [],                     // free-floating: [{id,src,type:'emoji'|'img',x,y,size}]
   theme: 'biblioteca',
   lists: { ...DEFAULT_LISTS },
   loading: false,
@@ -379,7 +378,6 @@ function lsSnapshot(){
     lists: state.lists,
     books: state.books,
     decorations: state.decorations,
-    stickers: state.stickers,
   };
 }
 function persistLocal(){
@@ -432,7 +430,6 @@ async function saveProfile(){
     theme: state.theme,
     lists: state.lists,
     decorations: state.decorations,
-    stickers: state.stickers,
     updatedAt: Date.now(),
   }, { merge: true });
 }
@@ -449,7 +446,6 @@ async function loadFromFirestore(){
     state.theme = p.theme || 'biblioteca';
     state.lists = p.lists || { ...DEFAULT_LISTS };
     state.decorations = p.decorations || [];
-    state.stickers = p.stickers || [];
   }
   applyTheme(state.theme);
 
@@ -469,7 +465,6 @@ function loadFromLocal(){
     state.lists = data.lists || { ...DEFAULT_LISTS };
     state.books = data.books || [];
     state.decorations = data.decorations || [];
-    state.stickers = data.stickers || [];
   }
   applyTheme(state.theme);
 }
@@ -698,7 +693,6 @@ function renderPainel(){
     `).join('');
 
   renderShelves(finished);
-  renderDecorations();
 }
 
 // ─── Bookshelves ───
@@ -838,9 +832,11 @@ function renderShelves(finished){
       const ROW_SIZE = 10;
       const rows = [];
       for(let i = 0; i < allItems.length; i += ROW_SIZE) rows.push(allItems.slice(i, i + ROW_SIZE));
-      const shelvesHTML = rows.map(rowItems =>
-        `<div class="shelf"><div class="shelf-row">${rowItems.map(renderItem).join('')}</div></div>`
-      ).join('');
+      const shelvesHTML = rows.map((rowItems, rowIdx) => {
+        const rowDecos = (state.decorations||[]).filter(d => d.genre === genre && (d.row||0) === rowIdx);
+        const decoHTML = rowDecos.map(d => renderShelfDecorEl(d)).join('');
+        return `<div class="shelf"><div class="shelf-row" data-genre="${attr(genre)}" data-row="${rowIdx}">${rowItems.map(renderItem).join('')}${decoHTML}</div></div>`;
+      }).join('');
 
       return `
         <div class="shelf-label">${escapeHtml(genre)} <span class="muted">· ${books.length}</span></div>
@@ -985,145 +981,93 @@ function renderConfig(){
 }
 
 // ─────────────────────────────────────────────
-// STICKER SYSTEM — free-floating canvas
+// DRAG-TO-SHELF DECORATION SYSTEM
 // ─────────────────────────────────────────────
-let _placingSticker = null; // {src, type} while in placing mode
+let _decorDrag = null;       // {src, type} while dragging from palette
+let _pendingCustomSrc = null; // base64 data URL from file upload
 
-function stickerInner(s){
-  if(s.type === 'img') return `<img src="${attr(s.src)}" alt="" draggable="false" style="width:${s.size}px;height:${s.size}px;object-fit:contain;">`;
-  return `<span style="font-size:${s.size}px;line-height:1;display:block;">${escapeHtml(s.src)}</span>`;
+/** Render one shelf decoration inline inside a .shelf-row */
+function renderShelfDecorEl(d){
+  const src  = d.src || d.emoji || '';
+  const type = d.type || (src.startsWith('data:') || src.startsWith('http') ? 'img' : 'emoji');
+  const size = d.size || 36;
+  const inner = type === 'img'
+    ? `<img src="${attr(src)}" alt="" draggable="false" style="width:${size}px;height:${size}px;object-fit:contain;">`
+    : `<span style="font-size:${size}px;line-height:1;">${escapeHtml(src)}</span>`;
+  return `<div class="shelf-decor" data-did="${d.id}" style="left:${(d.pos||0)*100}%;">
+    ${inner}
+    <button class="decor-del-btn" data-did="${d.id}" title="Remover">×</button>
+  </div>`;
 }
 
-function renderStickers(){
-  const layer = document.getElementById('decor-layer');
-  if(!layer) return;
-  layer.innerHTML = state.stickers.map(s => `
-    <div class="sticker-item" data-sid="${s.id}" style="left:${s.x}%;top:${s.y}%;">
-      <div class="sticker-body">${stickerInner(s)}</div>
-      <div class="sticker-controls">
-        <button class="sticker-btn sz-" data-sid="${s.id}" title="Diminuir">−</button>
-        <button class="sticker-btn sz+" data-sid="${s.id}" title="Aumentar">+</button>
-        <button class="sticker-btn del" data-sid="${s.id}" title="Remover">×</button>
-      </div>
-    </div>`).join('');
-}
-
-function enterPlacingMode(src, type){
-  _placingSticker = { src, type };
+// pointerdown on .decor-pick → start drag, show ghost, close drawer
+document.addEventListener('pointerdown', (e) => {
+  const pick = e.target.closest('.decor-pick');
+  if(!pick) return;
+  e.preventDefault();
+  const src  = pick.dataset.add || _pendingCustomSrc;
+  const type = pick.dataset.type || 'emoji';
+  if(!src) return;
+  _decorDrag = { src, type };
   const ghost = document.getElementById('sticker-ghost');
-  ghost.innerHTML = type === 'img'
-    ? `<img src="${attr(src)}" style="width:52px;height:52px;object-fit:contain;">`
-    : `<span style="font-size:48px;line-height:1;">${escapeHtml(src)}</span>`;
-  ghost.hidden = false;
-  document.body.classList.add('placing-mode');
-  toast('Clique no painel para posicionar · ESC para cancelar', '');
-}
+  if(ghost){
+    ghost.innerHTML = type === 'img'
+      ? `<img src="${attr(src)}" style="width:48px;height:48px;object-fit:contain;">`
+      : `<span style="font-size:44px;line-height:1;">${escapeHtml(src)}</span>`;
+    ghost.style.left = e.clientX + 'px';
+    ghost.style.top  = e.clientY + 'px';
+    ghost.hidden = false;
+  }
+  closeDecorDrawer();
+});
 
-function exitPlacingMode(){
-  _placingSticker = null;
+// pointermove → move ghost, highlight shelf-row under cursor
+document.addEventListener('pointermove', (e) => {
+  if(!_decorDrag) return;
+  const ghost = document.getElementById('sticker-ghost');
+  if(ghost && !ghost.hidden){
+    ghost.style.left = e.clientX + 'px';
+    ghost.style.top  = e.clientY + 'px';
+  }
+  document.querySelectorAll('.shelf-row.drop-target').forEach(el => el.classList.remove('drop-target'));
+  const below = document.elementFromPoint(e.clientX, e.clientY);
+  if(below){ const row = below.closest('.shelf-row'); if(row) row.classList.add('drop-target'); }
+});
+
+// pointerup → place decoration if dropped on a shelf-row, otherwise cancel
+document.addEventListener('pointerup', async (e) => {
+  if(!_decorDrag) return;
+  const { src, type } = _decorDrag;
+  _decorDrag = null;
   const ghost = document.getElementById('sticker-ghost');
   if(ghost) ghost.hidden = true;
-  document.body.classList.remove('placing-mode');
-}
-
-async function placeSticker(x, y){
-  if(!_placingSticker) return;
-  const s = { id: uid(), src: _placingSticker.src, type: _placingSticker.type, x, y, size: 52 };
-  state.stickers.push(s);
+  document.querySelectorAll('.shelf-row.drop-target').forEach(el => el.classList.remove('drop-target'));
+  const below = document.elementFromPoint(e.clientX, e.clientY);
+  if(!below) return;
+  const row = below.closest('.shelf-row');
+  if(!row) return;
+  const genre  = row.dataset.genre;
+  const rowIdx = parseInt(row.dataset.row) || 0;
+  const rect   = row.getBoundingClientRect();
+  const pos    = Math.max(0.02, Math.min(0.98, (e.clientX - rect.left) / rect.width));
+  state.decorations.push({ id: uid(), src, type, genre, row: rowIdx, pos, size: type === 'img' ? 48 : 36 });
   await saveProfile(); persistLocal();
-  renderStickers();
-  exitPlacingMode();
-}
-
-async function removeSticker(id){
-  state.stickers = state.stickers.filter(s => s.id !== id);
-  await saveProfile(); persistLocal();
-  renderStickers();
-}
-
-async function clearDecorations(){
-  state.stickers = [];
-  state.decorations = [];
-  await saveProfile(); persistLocal();
-  renderStickers();
-}
-
-// Sticker drag — reposition
-let _stickerDrag = null;
-document.addEventListener('pointerdown', (e) => {
-  // Sticker controls are handled separately; only drag the body
-  if(e.target.closest('.sticker-controls')) return;
-  const item = e.target.closest('.sticker-item');
-  if(!item) return;
-  e.preventDefault();
-  const layer = document.getElementById('decor-layer');
-  const lr = layer.getBoundingClientRect();
-  _stickerDrag = {
-    id: item.dataset.sid,
-    startX: e.clientX, startY: e.clientY,
-    origX: parseFloat(item.style.left),
-    origY: parseFloat(item.style.top),
-    lw: lr.width, lh: lr.height,
-  };
-  item.classList.add('dragging');
-});
-document.addEventListener('pointermove', (e) => {
-  if(!_stickerDrag) return;
-  const { id, startX, startY, origX, origY, lw, lh } = _stickerDrag;
-  const dx = ((e.clientX - startX) / lw) * 100;
-  const dy = ((e.clientY - startY) / lh) * 100;
-  const nx = Math.max(0, Math.min(96, origX + dx));
-  const ny = Math.max(0, Math.min(96, origY + dy));
-  const el = document.querySelector(`.sticker-item[data-sid="${id}"]`);
-  if(el){ el.style.left = nx + '%'; el.style.top = ny + '%'; }
-});
-document.addEventListener('pointerup', async (e) => {
-  if(!_stickerDrag) return;
-  const { id } = _stickerDrag;
-  const el = document.querySelector(`.sticker-item[data-sid="${id}"]`);
-  if(el){
-    el.classList.remove('dragging');
-    const s = state.stickers.find(x => x.id === id);
-    if(s){
-      s.x = parseFloat(el.style.left);
-      s.y = parseFloat(el.style.top);
-      await saveProfile(); persistLocal();
-    }
-  }
-  _stickerDrag = null;
+  renderPainel();
+  toast('Decoração adicionada ✨');
 });
 
-// Scroll to resize
-document.addEventListener('wheel', async (e) => {
-  const item = e.target.closest('.sticker-item');
-  if(!item) return;
-  e.preventDefault();
-  const s = state.stickers.find(x => x.id === item.dataset.sid);
-  if(!s) return;
-  const delta = e.deltaY < 0 ? 8 : -8;
-  s.size = Math.max(20, Math.min(200, (s.size || 52) + delta));
-  renderStickers();
-  await saveProfile(); persistLocal();
-}, { passive: false });
-
-// Ghost follows mouse
-document.addEventListener('mousemove', (e) => {
-  const ghost = document.getElementById('sticker-ghost');
-  if(!ghost || ghost.hidden) return;
-  ghost.style.left = e.clientX + 'px';
-  ghost.style.top  = e.clientY + 'px';
-});
-
-// Cancel placing mode on ESC
+// ESC cancels drag
 document.addEventListener('keydown', (e) => {
-  if(e.key === 'Escape' && _placingSticker) exitPlacingMode();
+  if(e.key === 'Escape' && _decorDrag){
+    _decorDrag = null;
+    const ghost = document.getElementById('sticker-ghost');
+    if(ghost) ghost.hidden = true;
+    document.querySelectorAll('.shelf-row.drop-target').forEach(el => el.classList.remove('drop-target'));
+  }
 });
 
-// Old floating .decor compatibility stub
-function renderDecorations(){ renderStickers(); }
+function renderDecorations(){ /* shelf decorations rendered inline in buildHTML */ }
 function hideDecorToolbar(){}
-let selectedDecor = null;
-let dragState = null;
 function showDecorToolbar(){}
 
 let _decorActiveCat = 'tema';
@@ -1171,85 +1115,6 @@ async function clearDecorations(){
   renderPainel();
 }
 
-// Decoration drag handling
-let dragState = null;
-let selectedDecor = null;
-document.addEventListener('pointerdown', (e) => {
-  const decor = e.target.closest('.decor');
-  if(decor){
-    e.preventDefault();
-    const id = decor.dataset.id;
-    selectedDecor = id;
-    const layer = decor.parentElement;
-    const rect = layer.getBoundingClientRect();
-    dragState = { id, layer, rect, ox: e.clientX, oy: e.clientY,
-      origX: parseFloat(decor.style.left), origY: parseFloat(decor.style.top) };
-    decor.classList.add('dragging');
-    document.querySelectorAll('.decor').forEach(d => d.classList.toggle('selected', d.dataset.id === id));
-    showDecorToolbar(id);
-  } else if(!e.target.closest('.decor-toolbar')){
-    selectedDecor = null;
-    document.querySelectorAll('.decor').forEach(d => d.classList.remove('selected'));
-    hideDecorToolbar();
-  }
-});
-document.addEventListener('pointermove', (e) => {
-  if(!dragState) return;
-  const dx = ((e.clientX - dragState.ox) / dragState.rect.width) * 100;
-  const dy = ((e.clientY - dragState.oy) / dragState.rect.height) * 100;
-  const newX = Math.max(0, Math.min(95, dragState.origX + dx));
-  const newY = Math.max(0, Math.min(95, dragState.origY + dy));
-  const el = document.querySelector(`.decor[data-id="${dragState.id}"]`);
-  if(el){ el.style.left = newX + '%'; el.style.top = newY + '%'; }
-});
-document.addEventListener('pointerup', async () => {
-  if(!dragState) return;
-  const el = document.querySelector(`.decor[data-id="${dragState.id}"]`);
-  if(el){
-    el.classList.remove('dragging');
-    await updateDecoration(dragState.id, { x: parseFloat(el.style.left), y: parseFloat(el.style.top) });
-    showDecorToolbar(dragState.id);
-  }
-  dragState = null;
-});
-
-function showDecorToolbar(id){
-  hideDecorToolbar();
-  const el = document.querySelector(`.decor[data-id="${id}"]`);
-  if(!el) return;
-  const tb = document.createElement('div');
-  tb.className = 'decor-toolbar';
-  tb.innerHTML = `
-    <button data-tb="size-" title="Diminuir">－</button>
-    <button data-tb="size+" title="Aumentar">＋</button>
-    <button data-tb="rot" title="Girar">↻</button>
-    <button data-tb="remove" class="danger" title="Remover">×</button>
-  `;
-  const rect = el.getBoundingClientRect();
-  const layer = el.parentElement;
-  const lr = layer.getBoundingClientRect();
-  tb.style.left = (rect.left - lr.left + rect.width + 6) + 'px';
-  tb.style.top = (rect.top - lr.top) + 'px';
-  layer.appendChild(tb);
-
-  tb.addEventListener('click', async (ev) => {
-    const a = ev.target.dataset.tb;
-    const d = state.decorations.find(x => x.id === id);
-    if(!d) return;
-    if(a === 'size-') d.size = Math.max(20, (d.size||48) - 8);
-    if(a === 'size+') d.size = Math.min(160, (d.size||48) + 8);
-    if(a === 'rot') d.rot = ((d.rot||0) + 15) % 360;
-    if(a === 'remove'){ await removeDecoration(id); return; }
-    await updateDecoration(id, { size: d.size, rot: d.rot });
-    renderDecorations();
-    // re-select
-    document.querySelectorAll('.decor').forEach(x => x.classList.toggle('selected', x.dataset.id === id));
-    showDecorToolbar(id);
-  });
-}
-function hideDecorToolbar(){
-  document.querySelectorAll('.decor-toolbar').forEach(t => t.remove());
-}
 
 // ─────────────────────────────────────────────
 // BOOK MODAL
@@ -1629,7 +1494,6 @@ function wire(){
 
   // Shelf clicks: book spines open book card
   document.querySelector('[data-panel="painel"]').addEventListener('click', (e) => {
-    if(_placingSticker) return; // handled by placing listener
     const spine = e.target.closest('.book-spine');
     if(spine){
       const b = state.books.find(x => x.id === spine.dataset.id);
@@ -1698,12 +1562,7 @@ function wire(){
   document.getElementById('decor-close').addEventListener('click', closeDecorDrawer);
   document.getElementById('decor-clear').addEventListener('click', clearDecorations);
   document.getElementById('btn-clear-decor').addEventListener('click', clearDecorations);
-  document.getElementById('decor-palette').addEventListener('click', (e) => {
-    const b = e.target.closest('[data-add]');
-    if(!b) return;
-    closeDecorDrawer();
-    enterPlacingMode(b.dataset.add, 'emoji');
-  });
+  // Palette item drag is handled at document level via pointerdown on .decor-pick
 
   // Decor search
   document.getElementById('decor-search').addEventListener('input', () => renderDecorPalette());
@@ -1721,53 +1580,28 @@ function wire(){
     renderDecorPalette();
   });
 
-  // Custom sticker URL
-  const customUrlInput = document.getElementById('custom-sticker-url');
-  const customPreview  = document.getElementById('custom-sticker-preview');
-  const customImg      = document.getElementById('custom-preview-img');
-  customUrlInput.addEventListener('input', () => {
-    const url = customUrlInput.value.trim();
-    if(url && url.startsWith('http')){
-      customImg.src = url;
+  // Custom image upload via FileReader
+  const customFileInput = document.getElementById('custom-sticker-file');
+  const customPreview   = document.getElementById('custom-sticker-preview');
+  const customImg       = document.getElementById('custom-preview-img');
+  customFileInput.addEventListener('change', () => {
+    const file = customFileInput.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      _pendingCustomSrc = ev.target.result;
+      customImg.src = _pendingCustomSrc;
       customPreview.hidden = false;
-    } else {
-      customPreview.hidden = true;
-    }
-  });
-  document.getElementById('add-custom-sticker').addEventListener('click', () => {
-    const url = customUrlInput.value.trim();
-    if(!url){ toast('Cole uma URL de imagem primeiro', 'error'); return; }
-    closeDecorDrawer();
-    enterPlacingMode(url, 'img');
-    customUrlInput.value = '';
-    customPreview.hidden = true;
+    };
+    reader.readAsDataURL(file);
   });
 
-  // Panel click → place sticker in placing mode
-  document.querySelector('[data-panel="painel"]').addEventListener('click', (e) => {
-    if(!_placingSticker) return;
-    // Ignore clicks on UI elements
-    if(e.target.closest('.book-spine,.panel-header,.sticker-controls')) return;
-    const layer = document.getElementById('decor-layer');
-    const lr = layer.getBoundingClientRect();
-    const x = Math.max(0, Math.min(96, ((e.clientX - lr.left) / lr.width) * 100));
-    const y = Math.max(0, Math.min(96, ((e.clientY - lr.top)  / lr.height) * 100));
-    placeSticker(x, y);
-  });
-
-  // Sticker control buttons (−, +, ×)
-  document.getElementById('decor-layer').addEventListener('click', async (e) => {
-    const btn = e.target.closest('.sticker-btn');
+  // Delete shelf decoration via × button
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.decor-del-btn');
     if(!btn) return;
     e.stopPropagation();
-    const id = btn.dataset.sid;
-    const s = state.stickers.find(x => x.id === id);
-    if(!s) return;
-    if(btn.classList.contains('del')){ await removeSticker(id); return; }
-    if(btn.classList.contains('sz-')) s.size = Math.max(20, s.size - 12);
-    if(btn.classList.contains('sz+')) s.size = Math.min(200, s.size + 12);
-    renderStickers();
-    await saveProfile(); persistLocal();
+    await removeDecoration(btn.dataset.did);
   });
 
   // Import / export
@@ -1827,8 +1661,6 @@ function openDecorDrawer(){
 function closeDecorDrawer(){
   document.getElementById('decor-drawer').hidden = true;
   hideDecorToolbar();
-  selectedDecor = null;
-  document.querySelectorAll('.decor').forEach(d => d.classList.remove('selected'));
 }
 
 function surpriseTBR(){

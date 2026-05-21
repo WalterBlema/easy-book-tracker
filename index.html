@@ -603,16 +603,16 @@
     </div>
     <div class="decor-palette" id="decor-palette"></div>
 
-    <!-- Custom image URL -->
+    <!-- Custom image upload -->
     <div class="custom-sticker-section">
-      <p class="custom-sticker-label muted">Ou cole um link de imagem (PNG, SVG do Flaticon…)</p>
+      <p class="custom-sticker-label muted">Ou adicione uma imagem personalizada</p>
       <div class="custom-sticker-row">
-        <input type="url" id="custom-sticker-url" class="decor-search" placeholder="https://cdn-icons-png.flaticon.com/…" autocomplete="off">
-        <button id="add-custom-sticker" class="btn-soft">Usar</button>
+        <label class="btn-soft custom-file-label" for="custom-sticker-file">📁 Escolher imagem</label>
+        <input type="file" id="custom-sticker-file" accept="image/*" hidden>
       </div>
       <div id="custom-sticker-preview" class="custom-preview" hidden>
         <img id="custom-preview-img" src="" alt="preview">
-        <span class="muted">Clique em "Usar" e depois clique no painel para posicionar</span>
+        <button class="decor-pick btn-soft" id="custom-drag-btn" data-type="img">Arrastar para a estante →</button>
       </div>
     </div>
 
