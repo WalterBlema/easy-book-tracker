@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="biblioteca">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Easy Book Tracker</title>
+  <meta name="description" content="Acompanhe sua leitura, sua wishlist e suas estantes — com tema personalizável e decoração fofa." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Fonts for all four themes -->
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,800&family=DM+Serif+Display&family=Caveat:wght@400;600;700&family=Quicksand:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Bodoni+Moda:ital,wght@0,400;0,700;0,800;1,400&family=Major+Mono+Display&family=Pinyon+Script&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- LOGIN SCREEN                                     -->
+<!-- ═══════════════════════════════════════════════ -->
+<section id="login-screen" class="screen login">
+  <div class="login-art" aria-hidden="true">
+    <div class="art-stack">
+      <div class="art-book b1"></div>
+      <div class="art-book b2"></div>
+      <div class="art-book b3"></div>
+      <div class="art-book b4"></div>
+      <div class="art-book b5"></div>
+    </div>
+    <div class="art-quote">
+      <span class="art-quote-text">um lugar para tudo<br/>que você leu, lê<br/>ou um dia lerá.</span>
+    </div>
+  </div>
+
+  <div class="login-card">
+    <div class="brand-mark">
+      <span class="brand-icon"><i data-lucide="book-open"></i></span>
+      <h1 class="brand-name">Easy Book Tracker</h1>
+      <p class="brand-tagline">tudo o que você lê, em um lugar fofo</p>
+    </div>
+
+    <button id="btn-google" class="btn btn-google">
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+        <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.71v2.26h2.92c1.71-1.58 2.68-3.9 2.68-6.61z"/>
+        <path fill="#34A853" d="M9 18c2.43 0 4.47-.81 5.96-2.18l-2.92-2.26c-.81.54-1.84.86-3.04.86a5.27 5.27 0 0 1-4.95-3.64H.96v2.34A8.99 8.99 0 0 0 9 18z"/>
+        <path fill="#FBBC05" d="M4.05 10.78A5.4 5.4 0 0 1 3.76 9c0-.62.11-1.22.29-1.78V4.88H.96A8.99 8.99 0 0 0 0 9c0 1.45.35 2.82.96 4.04l3.09-2.26z"/>
+        <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58A8.99 8.99 0 0 0 9 0 8.99 8.99 0 0 0 .96 4.88l3.09 2.34A5.27 5.27 0 0 1 9 3.58z"/>
+      </svg>
+      <span>Entrar com Google</span>
+    </button>
+
+    <div class="divider"><span>ou</span></div>
+
+    <form id="form-email" class="form-email">
+      <label class="field">
+        <span>Email</span>
+        <input type="email" id="email" autocomplete="email" required placeholder="seu@email.com" />
+      </label>
+      <label class="field">
+        <span>Senha</span>
+        <input type="password" id="password" autocomplete="current-password" required minlength="6" placeholder="••••••••" />
+      </label>
+      <label class="field" id="field-confirm" hidden>
+        <span>Confirmar senha</span>
+        <input type="password" id="password-confirm" autocomplete="new-password" minlength="6" placeholder="••••••••" />
+      </label>
+      <div class="form-actions">
+        <button type="submit" id="btn-submit-email" class="btn btn-primary">Entrar</button>
+        <button type="button" id="btn-toggle-mode" class="btn-link">Criar conta</button>
+      </div>
+      <p id="auth-error" class="auth-error" hidden></p>
+    </form>
+
+    <button id="btn-guest" class="btn-link guest-link">→ Continuar sem conta (local)</button>
+
+    <p class="login-note">Seus livros ficam <strong>privados</strong>. Você pode sair e voltar quando quiser.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- APP SHELL                                        -->
+<!-- ═══════════════════════════════════════════════ -->
+<section id="app" class="screen app" hidden>
+
+  <!-- Top navigation -->
+  <header class="topnav">
+    <div class="topnav-inner">
+      <a class="brand" href="#painel">
+        <span class="brand-icon"><i data-lucide="book-open"></i></span>
+        <span class="brand-name">Easy Book Tracker</span>
+      </a>
+
+      <nav class="tabs" id="tabs">
+        <a class="tab active" data-tab="painel" href="#painel"><span class="tab-ico"><i data-lucide="layout-dashboard"></i></span>Painel</a>
+        <a class="tab" data-tab="tabela" href="#tabela"><span class="tab-ico"><i data-lucide="table-2"></i></span>Book Tracker</a>
+        <a class="tab" data-tab="resenhas" href="#resenhas"><span class="tab-ico"><i data-lucide="heart"></i></span>Resenhas &amp; Galeria</a>
+        <a class="tab" data-tab="wishlist" href="#wishlist"><span class="tab-ico"><i data-lucide="star"></i></span>Wishlist</a>
+        <a class="tab" data-tab="tbr" href="#tbr"><span class="tab-ico"><i data-lucide="bookmark"></i></span>Para Ler</a>
+        <a class="tab" data-tab="config" href="#config"><span class="tab-ico"><i data-lucide="settings"></i></span>Configurações</a>
+      </nav>
+
+      <div class="user-menu" id="user-menu">
+        <button class="user-trigger" id="user-trigger" aria-haspopup="true" aria-expanded="false">
+          <img class="avatar" id="user-avatar" alt="" />
+          <span class="user-name" id="user-name">Visitante</span>
+          <span class="user-caret">▾</span>
+        </button>
+        <div class="user-dropdown" id="user-dropdown" hidden>
+          <div class="dd-header">
+            <img class="avatar lg" id="dd-avatar" alt="" />
+            <div>
+              <div class="dd-name" id="dd-name">—</div>
+              <div class="dd-email" id="dd-email">—</div>
+            </div>
+          </div>
+          <button class="dd-item" data-action="theme"><i data-lucide="palette"></i> Trocar tema</button>
+          <button class="dd-item" data-action="decorate"><i data-lucide="sparkles"></i> Decorar estante</button>
+          <button class="dd-item" data-action="export"><i data-lucide="download"></i> Exportar livros (JSON)</button>
+          <hr/>
+          <button class="dd-item danger" data-action="logout"><i data-lucide="log-out"></i> Sair</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Tab panels -->
+  <main class="content">
+
+    <!-- ─── PAINEL ─── -->
+    <section class="panel active" data-panel="painel" data-screen-label="01 Painel">
+      <div class="panel-decor-layer" id="decor-layer"></div>
+
+      <div class="panel-header">
+        <h2 class="panel-title">Seu Painel</h2>
+        <div class="panel-controls">
+          <label class="year-pick">
+            <span>Ano</span>
+            <select id="year-pick"><option>Todos</option><option>2026</option><option>2025</option><option>2024</option></select>
+          </label>
+          <button class="btn-soft" data-action="decorate" title="Decorar estante"><i data-lucide="sparkles"></i> Decorar</button>
+        </div>
+      </div>
+
+      <div class="library-layout">
+        <!-- ══ Estante esquerda ══ -->
+        <div class="shelves-col shelves-col-left" id="shelves-left"></div>
+
+        <!-- ══ Centro: stats + gráficos ══ -->
+        <div class="library-center">
+          <div class="dash-grid">
+            <!-- Row 1: Big stat cards -->
+            <div class="stat-card">
+              <span class="stat-label">Lidos</span>
+              <span class="stat-value" id="stat-read">0</span>
+              <span class="stat-delta" id="stat-read-delta">—</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Em leitura</span>
+              <span class="stat-value" id="stat-reading">0</span>
+              <span class="stat-delta">em andamento</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Para ler</span>
+              <span class="stat-value" id="stat-tbr">0</span>
+              <span class="stat-delta">na estante</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Páginas lidas</span>
+              <span class="stat-value" id="stat-pages">0</span>
+              <span class="stat-delta">no ano</span>
+            </div>
+
+            <!-- Donut + bars card -->
+            <div class="card span-2">
+              <div class="card-header"><h3>Status de leitura</h3></div>
+              <div class="card-body status-card">
+                <div class="donut">
+                  <svg viewBox="0 0 36 36" class="donut-svg">
+                    <circle cx="18" cy="18" r="15.91" class="donut-track"/>
+                    <circle cx="18" cy="18" r="15.91" class="donut-fill" id="donut-fill" stroke-dasharray="0 100"/>
+                  </svg>
+                  <div class="donut-center"><span id="donut-pct">0%</span><small>lidos</small></div>
+                </div>
+                <div class="status-bars" id="status-bars"></div>
+              </div>
+            </div>
+
+            <!-- Monthly chart -->
+            <div class="card span-2">
+              <div class="card-header"><h3>Livros lidos por mês</h3><span class="muted" id="months-year">2026</span></div>
+              <div class="card-body">
+                <div class="months-chart" id="months-chart"></div>
+              </div>
+            </div>
+
+            <!-- Top author / genre / format -->
+            <div class="card span-2">
+              <div class="card-header"><h3>Favoritos</h3></div>
+              <div class="card-body kv-list" id="favs-list"></div>
+            </div>
+
+            <!-- Recent reads -->
+            <div class="card span-2">
+              <div class="card-header"><h3>Últimos finalizados</h3></div>
+              <div class="card-body recent-reads" id="recent-reads"></div>
+            </div>
+
+            <!-- Quote of the day -->
+            <div class="card quote-card span-4">
+              <div class="card-body">
+                <div class="quote" id="quote-of-day">
+                  <p class="quote-text">"Que os livros sejam tua bússola quando a noite for densa e os caminhos, esquecidos."</p>
+                  <span class="quote-author">— anotação favorita</span>
+                </div>
+              </div>
+            </div><!-- /quote-card -->
+          </div><!-- /dash-grid -->
+        </div><!-- /library-center -->
+
+        <!-- ══ Estante direita ══ -->
+        <div class="shelves-col shelves-col-right" id="shelves-right"></div>
+      </div><!-- /library-layout -->
+    </section>
+
+    <!-- ─── BOOK TRACKER (Tabela) ─── -->
+    <section class="panel" data-panel="tabela" data-screen-label="02 Book Tracker">
+      <div class="panel-header">
+        <h2 class="panel-title">Book Tracker</h2>
+        <div class="panel-controls">
+          <input class="search" id="search-books" placeholder="🔍  Buscar título, autor, série…" />
+          <select id="filter-status">
+            <option value="">Todos os status</option>
+            <option>Lido</option><option>Em leitura</option><option>Para ler</option><option>Abandonado</option><option>Desejado</option>
+          </select>
+          <select id="filter-genre">
+            <option value="">Todos os gêneros</option>
+          </select>
+          <select id="filter-format">
+            <option value="">Todos os formatos</option>
+            <option>Físico</option><option>Kindle</option><option>Ebook</option><option>Audiolivro</option>
+          </select>
+          <button class="btn-primary" data-action="add-book">＋ Novo livro</button>
+        </div>
+      </div>
+
+      <div class="card table-card">
+        <table class="books-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Título</th>
+              <th>Autor</th>
+              <th>Gênero</th>
+              <th>Formato</th>
+              <th>Status</th>
+              <th>Pgs</th>
+              <th>Início</th>
+              <th>Fim</th>
+              <th>★</th>
+              <th>🌶</th>
+              <th>R$</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="books-tbody"></tbody>
+        </table>
+        <div class="empty-state" id="books-empty" hidden>
+          <div class="empty-art"><i data-lucide="library"></i></div>
+          <h4>Sua estante está esperando</h4>
+          <p>Clique em <strong>＋ Novo livro</strong> para adicionar o primeiro.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── RESENHAS & GALERIA ─── -->
+    <section class="panel" data-panel="resenhas" data-screen-label="03 Resenhas">
+      <div class="panel-header">
+        <h2 class="panel-title">Resenhas &amp; Galeria</h2>
+        <div class="panel-controls">
+          <select id="gallery-filter-rating">
+            <option value="">Todas as estrelas</option>
+            <option value="5">★★★★★</option><option value="4">★★★★+</option><option value="3">★★★+</option>
+          </select>
+          <select id="gallery-filter-genre">
+            <option value="">Todos os gêneros</option>
+          </select>
+          <select id="gallery-sort">
+            <option value="recent">Mais recentes</option>
+            <option value="rating">Melhor avaliados</option>
+            <option value="title">Título A–Z</option>
+          </select>
+        </div>
+      </div>
+      <div class="gallery-grid" id="gallery-grid"></div>
+      <div class="empty-state" id="gallery-empty" hidden>
+        <div class="empty-art"><i data-lucide="pen-line"></i></div>
+        <h4>Nenhuma resenha ainda</h4>
+        <p>Marque um livro como <em>Lido</em> e adicione estrelas para vê-lo aqui.</p>
+      </div>
+    </section>
+
+    <!-- ─── WISHLIST ─── -->
+    <section class="panel" data-panel="wishlist" data-screen-label="04 Wishlist">
+      <div class="panel-header">
+        <h2 class="panel-title">Wishlist</h2>
+        <div class="panel-controls">
+          <span class="muted">Total estimado · <strong id="wishlist-total">R$ 0,00</strong></span>
+          <button class="btn-primary" data-action="add-wishlist">＋ Adicionar desejo</button>
+        </div>
+      </div>
+      <div class="wish-grid" id="wish-grid"></div>
+      <div class="empty-state" id="wish-empty" hidden>
+        <div class="empty-art"><i data-lucide="star"></i></div>
+        <h4>Sua wishlist está vazia</h4>
+        <p>Adicione livros que você quer comprar.</p>
+      </div>
+    </section>
+
+    <!-- ─── TBR ─── -->
+    <section class="panel" data-panel="tbr" data-screen-label="05 Para Ler">
+      <div class="panel-header">
+        <h2 class="panel-title">Para Ler</h2>
+        <div class="panel-controls">
+          <button class="btn-soft" data-action="surprise"><i data-lucide="shuffle"></i> Surpreenda-me</button>
+        </div>
+      </div>
+      <div class="gallery-grid" id="tbr-grid"></div>
+      <div class="empty-state" id="tbr-empty" hidden>
+        <div class="empty-art"><i data-lucide="bookmark"></i></div>
+        <h4>Nada para ler ainda</h4>
+        <p>Adicione um livro com status <em>Para ler</em> para vê-lo aqui.</p>
+      </div>
+    </section>
+
+    <!-- ─── CONFIGURAÇÕES ─── -->
+    <section class="panel" data-panel="config" data-screen-label="06 Configurações">
+      <div class="panel-header">
+        <h2 class="panel-title">Configurações</h2>
+      </div>
+
+      <div class="config-grid">
+        <div class="card">
+          <div class="card-header"><h3>Tema</h3></div>
+          <div class="card-body">
+            <p class="muted">Escolha como o seu tracker fica.</p>
+            <div class="theme-picker" id="theme-picker">
+              <button class="theme-card" data-theme="biblioteca">
+                <div class="theme-preview tp-biblioteca">
+                  <span class="tp-h">Biblioteca</span>
+                  <span class="tp-sub">madeira · dourado · cozy</span>
+                </div>
+              </button>
+              <button class="theme-card" data-theme="pergaminho">
+                <div class="theme-preview tp-pergaminho">
+                  <span class="tp-h">Pergaminho</span>
+                  <span class="tp-sub">creme · sépia · minimal</span>
+                </div>
+              </button>
+              <button class="theme-card" data-theme="doce">
+                <div class="theme-preview tp-doce">
+                  <span class="tp-h">Doce</span>
+                  <span class="tp-sub">pêssego · rosa · fofo</span>
+                </div>
+              </button>
+              <button class="theme-card" data-theme="editorial">
+                <div class="theme-preview tp-editorial">
+                  <span class="tp-h">Editorial</span>
+                  <span class="tp-sub">jornal · sério · denso</span>
+                </div>
+              </button>
+              <button class="theme-card" data-theme="cosmos">
+                <div class="theme-preview tp-cosmos">
+                  <span class="tp-h">Cosmos</span>
+                  <span class="tp-sub">galáxia · neon · futurista</span>
+                </div>
+              </button>
+              <button class="theme-card" data-theme="botanica">
+                <div class="theme-preview tp-botanica">
+                  <span class="tp-h">Botânica</span>
+                  <span class="tp-sub">verde · terracota · vivo</span>
+                </div>
+              </button>
+              <button class="theme-card" data-theme="cyberpunk">
+                <div class="theme-preview tp-cyberpunk">
+                  <span class="tp-h">Cyberpunk</span>
+                  <span class="tp-sub">neon · scan · terminal</span>
+                </div>
+              </button>
+              <button class="theme-card" data-theme="noir">
+                <div class="theme-preview tp-noir">
+                  <span class="tp-h">Noir</span>
+                  <span class="tp-sub">art déco · ouro · onyx</span>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3>Decorações da estante</h3></div>
+          <div class="card-body">
+            <p class="muted">Plantas, livros, café & afins — temáticos por estilo. Arraste nas prateleiras para reposicionar; passe o mouse para controles de tamanho.</p>
+            <button class="btn-primary" data-action="decorate">Abrir paleta de decorações</button>
+            <button class="btn-soft" id="btn-clear-decor">Limpar decorações</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3>Listas editáveis</h3></div>
+          <div class="card-body">
+            <div class="editable-lists">
+              <div>
+                <h4>Gêneros</h4>
+                <ul class="edit-list" id="list-genres"></ul>
+                <div class="add-row"><input id="new-genre" placeholder="Novo gênero…"/><button data-list="genres">＋</button></div>
+              </div>
+              <div>
+                <h4>Status</h4>
+                <ul class="edit-list" id="list-statuses"></ul>
+                <div class="add-row"><input id="new-status" placeholder="Novo status…"/><button data-list="statuses">＋</button></div>
+              </div>
+              <div>
+                <h4>Formatos</h4>
+                <ul class="edit-list" id="list-formats"></ul>
+                <div class="add-row"><input id="new-format" placeholder="Novo formato…"/><button data-list="formats">＋</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3>Backup &amp; conta</h3></div>
+          <div class="card-body">
+            <p class="muted" id="account-status">Modo local (localStorage)</p>
+            <div class="btn-row">
+              <button class="btn-soft" data-action="export"><i data-lucide="download"></i> Exportar JSON</button>
+              <button class="btn-soft" data-action="import"><i data-lucide="upload"></i> Importar JSON</button>
+              <input type="file" id="import-file" accept="application/json" hidden />
+            </div>
+            <div class="btn-row">
+              <button class="btn-soft danger" data-action="wipe"><i data-lucide="trash-2"></i> Apagar tudo</button>
+              <button class="btn-soft danger" data-action="logout"><i data-lucide="log-out"></i> Sair</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Floating action button -->
+  <button class="fab" id="fab" data-action="add-book" title="Adicionar livro">＋</button>
+
+  <!-- ═══ MODALS ═══ -->
+
+  <!-- Add/Edit Book modal -->
+  <div class="modal-backdrop" id="modal-book" hidden>
+    <div class="modal book-modal" role="dialog" aria-modal="true">
+      <header class="modal-header">
+        <h3 id="book-modal-title">Adicionar livro</h3>
+        <button class="modal-close" data-close>×</button>
+      </header>
+      <div class="modal-body">
+        <!-- Cover search -->
+        <div class="cover-search">
+          <label class="field span-2">
+            <span>Buscar capa (Google Books)</span>
+            <div class="search-with-button">
+              <input id="cover-search-input" placeholder="Digite o título e/ou autor…" />
+              <button type="button" id="cover-search-btn">🔍 Buscar</button>
+            </div>
+          </label>
+          <div class="cover-results" id="cover-results"></div>
+        </div>
+
+        <div class="form-grid">
+          <div class="cover-col">
+            <div class="cover-preview" id="cover-preview">
+              <div class="cover-placeholder">capa</div>
+            </div>
+            <div class="cover-url-row">
+              <input id="f-cover-url" type="url" placeholder="Cole URL da capa…" autocomplete="off" />
+              <button type="button" id="cover-url-btn" title="Aplicar URL">✓</button>
+            </div>
+          </div>
+
+          <div class="form-fields">
+            <label class="field"><span>Título *</span><input id="f-title" required/></label>
+            <label class="field"><span>Autor</span><input id="f-author"/></label>
+            <label class="field"><span>Série</span><input id="f-series" placeholder="Crônica #1"/></label>
+            <label class="field"><span>Gênero</span><select id="f-genre"></select></label>
+            <label class="field"><span>Formato</span><select id="f-format"></select></label>
+            <label class="field"><span>Status</span><select id="f-status"></select></label>
+            <label class="field"><span>Páginas</span><input id="f-pages" type="number" min="0"/></label>
+            <label class="field"><span>Início</span><input id="f-start" type="date"/></label>
+            <label class="field"><span>Fim</span><input id="f-end" type="date"/></label>
+            <label class="field"><span>Estrelas</span>
+              <div class="star-pick" id="f-rating">
+                <button type="button" data-v="1">★</button>
+                <button type="button" data-v="2">★</button>
+                <button type="button" data-v="3">★</button>
+                <button type="button" data-v="4">★</button>
+                <button type="button" data-v="5">★</button>
+              </div>
+            </label>
+            <label class="field"><span>Pimentas</span>
+              <div class="star-pick spice" id="f-spice">
+                <button type="button" data-v="1">🌶</button>
+                <button type="button" data-v="2">🌶</button>
+                <button type="button" data-v="3">🌶</button>
+                <button type="button" data-v="4">🌶</button>
+                <button type="button" data-v="5">🌶</button>
+              </div>
+            </label>
+            <label class="field"><span>Preço (R$)</span><input id="f-price" type="number" step="0.01" min="0"/></label>
+            <label class="field span-2"><span>Notas / resenha</span><textarea id="f-notes" rows="3"></textarea></label>
+            <label class="field span-2"><span>Sumário do livro</span><textarea id="f-summary" rows="3" placeholder="Do que trata o livro…"></textarea></label>
+            <label class="field span-2"><span>Citação favorita</span><textarea id="f-quote" rows="2" placeholder="Uma frase que te marcou…"></textarea></label>
+            <input type="hidden" id="f-cover"/>
+            <input type="hidden" id="f-id"/>
+          </div>
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button class="btn-soft danger" id="book-delete" hidden><i data-lucide="trash-2"></i> Excluir</button>
+        <div class="grow"></div>
+        <button class="btn-soft" data-close>Cancelar</button>
+        <button class="btn-primary" id="book-save">Salvar</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ═══ BOOK CARD VIEW (Ficha da Biblioteca) ═══ -->
+  <div class="modal-backdrop" id="modal-book-card" hidden>
+    <div class="modal book-card-modal" role="dialog" aria-modal="true">
+      <button class="modal-close bc-close-x" id="card-close-x" aria-label="Fechar">×</button>
+      <div class="bc-layout">
+        <!-- Coluna da capa -->
+        <div class="bc-cover-col">
+          <div class="bc-stamp-label">📚 FICHA DO LIVRO</div>
+          <div class="bc-cover-wrap" id="bc-cover-wrap">
+            <div class="bc-cover-empty">📚</div>
+          </div>
+          <div class="bc-rating-block">
+            <div class="bc-stars-row" id="bc-stars"></div>
+            <div class="bc-spice-row" id="bc-spice"></div>
+          </div>
+          <div class="bc-price-tag" id="bc-price-tag"></div>
+        </div>
+        <!-- Coluna de informações -->
+        <div class="bc-info-col">
+          <div class="bc-header">
+            <div class="bc-genre-badge" id="bc-genre-badge" hidden></div>
+            <h2 class="bc-book-title" id="bc-title"></h2>
+            <p class="bc-book-author" id="bc-author"></p>
+            <p class="bc-book-series" id="bc-series" hidden></p>
+          </div>
+          <div class="bc-fields">
+            <div class="bc-field"><span class="bc-fl">FORMATO</span><span class="bc-fv" id="bc-format"></span></div>
+            <div class="bc-field"><span class="bc-fl">STATUS</span><span class="bc-fv" id="bc-status"></span></div>
+            <div class="bc-field"><span class="bc-fl">PÁGINAS</span><span class="bc-fv" id="bc-pages"></span></div>
+            <div class="bc-field"><span class="bc-fl">INÍCIO</span><span class="bc-fv" id="bc-start"></span></div>
+            <div class="bc-field"><span class="bc-fl">FIM</span><span class="bc-fv" id="bc-end"></span></div>
+          </div>
+          <div class="bc-section" id="bc-notes-section" hidden>
+            <div class="bc-sl">NOTAS</div>
+            <div class="bc-sb" id="bc-notes"></div>
+          </div>
+          <div class="bc-section" id="bc-summary-section" hidden>
+            <div class="bc-sl">SUMÁRIO DO LIVRO</div>
+            <div class="bc-sb" id="bc-summary"></div>
+          </div>
+          <div class="bc-section bc-quote-sec" id="bc-quote-section" hidden>
+            <div class="bc-sl">CITAÇÃO FAVORITA</div>
+            <blockquote class="bc-quote-body" id="bc-quote"></blockquote>
+          </div>
+        </div>
+      </div>
+      <footer class="bc-footer">
+        <button class="btn-soft" id="card-close-btn">Fechar</button>
+        <button class="btn-primary" id="card-edit-btn"><i data-lucide="pencil"></i> Editar livro</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Decorations drawer -->
+  <aside class="decor-drawer" id="decor-drawer" hidden>
+    <header class="drawer-header">
+      <h3>Decorar estante</h3>
+      <button class="modal-close" id="decor-close">×</button>
+    </header>
+    <div class="decor-search-wrap">
+      <input type="search" id="decor-search" class="decor-search" placeholder="Buscar emoji… planta, gato, café…" autocomplete="off">
+    </div>
+    <div class="decor-cats" id="decor-cats">
+      <button class="decor-cat active" data-cat="tema">⭐ Tema</button>
+      <button class="decor-cat" data-cat="plantas">🌿 Plantas</button>
+      <button class="decor-cat" data-cat="animais">🐾 Animais</button>
+      <button class="decor-cat" data-cat="comida">☕ Comida</button>
+      <button class="decor-cat" data-cat="livros">📚 Livros</button>
+      <button class="decor-cat" data-cat="magia">✨ Magia</button>
+      <button class="decor-cat" data-cat="objetos">🕯️ Objetos</button>
+      <button class="decor-cat" data-cat="tudo">🔍 Tudo</button>
+    </div>
+    <div class="decor-palette" id="decor-palette"></div>
+    <footer class="decor-footer">
+      <span class="decor-count muted" id="decor-count"></span>
+      <button class="btn-ghost" id="decor-clear">Limpar tudo</button>
+    </footer>
+  </aside>
+
+</section>
+
+<!-- ═══ Toast ═══ -->
+<div class="toast" id="toast" hidden></div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+node_modules/
+.vercel/
+.DS_Store
+*.log
+.env
+.env.local
+
+# firebase-config.js com valores reais nunca vai para o git.
+# Use firebase-config.example.js como referência.
+# No Vercel, as credenciais são injetadas via variáveis de ambiente.
+firebase-config.js
