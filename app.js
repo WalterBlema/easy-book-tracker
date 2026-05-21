@@ -1007,29 +1007,64 @@ function renderShelfDecorEl(d){
   </div>`;
 }
 
-// pointerdown on .decor-pick → start drag, show ghost, close drawer
-document.addEventListener('pointerdown', (e) => {
-  const pick = e.target.closest('.decor-pick');
-  if(!pick) return;
-  e.preventDefault();
-  const src  = pick.dataset.add || _pendingCustomSrc;
-  const type = pick.dataset.type || 'emoji';
-  if(!src) return;
-  _decorDrag = { src, type };
+function _exitPlacement(){
+  _decorDrag = null;
+  document.body.classList.remove('placing-mode');
   const ghost = document.getElementById('sticker-ghost');
-  if(ghost){
-    ghost.innerHTML = type === 'img'
-      ? `<img src="${attr(src)}" style="width:48px;height:48px;object-fit:contain;">`
-      : `<span style="font-size:44px;line-height:1;">${escapeHtml(src)}</span>`;
-    ghost.style.left = e.clientX + 'px';
-    ghost.style.top  = e.clientY + 'px';
-    ghost.hidden = false;
+  if(ghost) ghost.hidden = true;
+  document.querySelectorAll('.shelf-row.drop-target').forEach(el => el.classList.remove('drop-target'));
+}
+
+// Click on .decor-pick → enter placement mode (ghost follows mouse freely)
+// Click again while in placement mode → place on shelf OR cancel if outside shelf
+document.addEventListener('click', async (e) => {
+  const pick = e.target.closest('.decor-pick');
+
+  if(pick){
+    // Enter (or replace) placement mode
+    const src  = pick.dataset.add || _pendingCustomSrc;
+    const type = pick.dataset.type || 'emoji';
+    if(!src) return;
+    _decorDrag = { src, type };
+    document.body.classList.add('placing-mode');
+    const ghost = document.getElementById('sticker-ghost');
+    if(ghost){
+      ghost.innerHTML = type === 'img'
+        ? `<img src="${attr(src)}" style="width:48px;height:48px;object-fit:contain;">`
+        : `<span style="font-size:44px;line-height:1;">${escapeHtml(src)}</span>`;
+      ghost.style.left = e.clientX + 'px';
+      ghost.style.top  = e.clientY + 'px';
+      ghost.hidden = false;
+    }
+    closeDecorDrawer();
+    toast('Clique numa prateleira para posicionar · ESC cancela', '');
+    return;
   }
-  closeDecorDrawer();
+
+  if(!_decorDrag) return;
+
+  const row = e.target.closest('.shelf-row');
+  if(!row){
+    // Clicked outside any shelf → cancel placement
+    _exitPlacement();
+    return;
+  }
+
+  // Place decoration on the clicked shelf row
+  const { src, type } = _decorDrag;
+  _exitPlacement();
+  const genre  = row.dataset.genre;
+  const rowIdx = parseInt(row.dataset.row) || 0;
+  const rect   = row.getBoundingClientRect();
+  const pos    = Math.max(0.02, Math.min(0.98, (e.clientX - rect.left) / rect.width));
+  state.decorations.push({ id: uid(), src, type, genre, row: rowIdx, pos, size: type === 'img' ? 48 : 36 });
+  await saveProfile(); persistLocal();
+  renderPainel();
+  toast('Decoração adicionada ✨');
 });
 
-// pointermove → move ghost, highlight shelf-row under cursor
-document.addEventListener('pointermove', (e) => {
+// Ghost follows mouse freely when in placement mode
+document.addEventListener('mousemove', (e) => {
   if(!_decorDrag) return;
   const ghost = document.getElementById('sticker-ghost');
   if(ghost && !ghost.hidden){
@@ -1041,36 +1076,9 @@ document.addEventListener('pointermove', (e) => {
   if(below){ const row = below.closest('.shelf-row'); if(row) row.classList.add('drop-target'); }
 });
 
-// pointerup → place decoration if dropped on a shelf-row, otherwise cancel
-document.addEventListener('pointerup', async (e) => {
-  if(!_decorDrag) return;
-  const { src, type } = _decorDrag;
-  _decorDrag = null;
-  const ghost = document.getElementById('sticker-ghost');
-  if(ghost) ghost.hidden = true;
-  document.querySelectorAll('.shelf-row.drop-target').forEach(el => el.classList.remove('drop-target'));
-  const below = document.elementFromPoint(e.clientX, e.clientY);
-  if(!below) return;
-  const row = below.closest('.shelf-row');
-  if(!row) return;
-  const genre  = row.dataset.genre;
-  const rowIdx = parseInt(row.dataset.row) || 0;
-  const rect   = row.getBoundingClientRect();
-  const pos    = Math.max(0.02, Math.min(0.98, (e.clientX - rect.left) / rect.width));
-  state.decorations.push({ id: uid(), src, type, genre, row: rowIdx, pos, size: type === 'img' ? 48 : 36 });
-  await saveProfile(); persistLocal();
-  renderPainel();
-  toast('Decoração adicionada ✨');
-});
-
-// ESC cancels drag
+// ESC cancels placement
 document.addEventListener('keydown', (e) => {
-  if(e.key === 'Escape' && _decorDrag){
-    _decorDrag = null;
-    const ghost = document.getElementById('sticker-ghost');
-    if(ghost) ghost.hidden = true;
-    document.querySelectorAll('.shelf-row.drop-target').forEach(el => el.classList.remove('drop-target'));
-  }
+  if(e.key === 'Escape' && _decorDrag) _exitPlacement();
 });
 
 function renderDecorations(){ /* shelf decorations rendered inline in buildHTML */ }
