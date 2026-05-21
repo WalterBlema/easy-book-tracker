@@ -523,9 +523,10 @@ async function signInGoogle(){
   try {
     const { auth, authMod } = await fb();
     const provider = new authMod.GoogleAuthProvider();
-    await authMod.signInWithPopup(auth, provider);
+    // Use redirect instead of popup — works on all browsers (iOS Safari, Firefox, etc.)
+    await authMod.signInWithRedirect(auth, provider);
   } catch(e){
-    showAuthError(e.message);
+    showAuthError(authErrMsg(e.code) || e.message);
   }
 }
 async function signInEmail(email, password, isCreate){
@@ -1738,6 +1739,15 @@ async function boot(){
 
   if(FIREBASE_ENABLED){
     const { auth, authMod } = await fb();
+
+    // Handle Google redirect result (returns from Google OAuth)
+    try {
+      await authMod.getRedirectResult(auth);
+    } catch(e){
+      if(e.code !== 'auth/no-current-user')
+        showAuthError(authErrMsg(e.code) || e.message);
+    }
+
     authMod.onAuthStateChanged(auth, (user) => {
       if(user){
         setUser({
@@ -1748,7 +1758,7 @@ async function boot(){
           isGuest: false,
         });
       } else {
-        // not signed in — stay on login screen
+        setUser(null);
       }
     });
   }
