@@ -602,11 +602,28 @@
       <button class="decor-cat" data-cat="tudo">🔍 Tudo</button>
     </div>
     <div class="decor-palette" id="decor-palette"></div>
+
+    <!-- Custom image URL -->
+    <div class="custom-sticker-section">
+      <p class="custom-sticker-label muted">Ou cole um link de imagem (PNG, SVG do Flaticon…)</p>
+      <div class="custom-sticker-row">
+        <input type="url" id="custom-sticker-url" class="decor-search" placeholder="https://cdn-icons-png.flaticon.com/…" autocomplete="off">
+        <button id="add-custom-sticker" class="btn-soft">Usar</button>
+      </div>
+      <div id="custom-sticker-preview" class="custom-preview" hidden>
+        <img id="custom-preview-img" src="" alt="preview">
+        <span class="muted">Clique em "Usar" e depois clique no painel para posicionar</span>
+      </div>
+    </div>
+
     <footer class="decor-footer">
       <span class="decor-count muted" id="decor-count"></span>
       <button class="btn-ghost" id="decor-clear">Limpar tudo</button>
     </footer>
   </aside>
+
+  <!-- Sticker ghost (follows mouse during placing mode) -->
+  <div class="sticker-ghost" id="sticker-ghost" hidden></div>
 
 </section>
 
