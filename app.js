@@ -990,7 +990,8 @@ function renderConfig(){
 // ─────────────────────────────────────────────
 // DRAG-TO-SHELF DECORATION SYSTEM
 // ─────────────────────────────────────────────
-let _decorDrag = null;       // {src, type} while dragging from palette
+let _decorDrag   = null;  // {src, type} while in placement mode
+let _decorResize = null;  // {id, startX, startY, startSize} while resizing
 let _pendingCustomSrc = null; // base64 data URL from file upload
 
 /** Render one shelf decoration inline inside a .shelf-row */
@@ -1003,7 +1004,8 @@ function renderShelfDecorEl(d){
     : `<span style="font-size:${size}px;line-height:1;">${escapeHtml(src)}</span>`;
   return `<div class="shelf-decor" data-did="${d.id}" style="left:${(d.pos||0)*100}%;">
     ${inner}
-    <button class="decor-del-btn" data-did="${d.id}" title="Remover">×</button>
+    <button class="decor-del-btn"    data-did="${d.id}" title="Remover">×</button>
+    <div    class="decor-resize-handle" data-did="${d.id}" title="Redimensionar"></div>
   </div>`;
 }
 
@@ -1014,6 +1016,47 @@ function _exitPlacement(){
   if(ghost) ghost.hidden = true;
   document.querySelectorAll('.shelf-row.drop-target').forEach(el => el.classList.remove('drop-target'));
 }
+
+// ── Resize handle: pointerdown/move/up ──────────────────
+document.addEventListener('pointerdown', (e) => {
+  const handle = e.target.closest('.decor-resize-handle');
+  if(!handle) return;
+  e.preventDefault(); e.stopPropagation();
+  const id = handle.dataset.did;
+  const d  = state.decorations.find(x => x.id === id);
+  if(!d) return;
+  handle.setPointerCapture(e.pointerId);
+  _decorResize = { id, startX: e.clientX, startY: e.clientY, startSize: d.size || 36 };
+  handle.closest('.shelf-decor')?.classList.add('resizing');
+});
+
+document.addEventListener('pointermove', (e) => {
+  if(!_decorResize) return;
+  e.preventDefault();
+  const { id, startX, startY, startSize } = _decorResize;
+  // Diagonal delta: right+down = bigger, left+up = smaller
+  const delta = ((e.clientX - startX) + (e.clientY - startY)) / 1.4;
+  const newSize = Math.max(16, Math.min(140, Math.round(startSize + delta)));
+  // Live update DOM without re-rendering
+  const el = document.querySelector(`.shelf-decor[data-did="${id}"]`);
+  if(!el) return;
+  const img  = el.querySelector('img');
+  const span = el.querySelector('span');
+  if(img)  { img.style.width = newSize + 'px'; img.style.height = newSize + 'px'; }
+  if(span) { span.style.fontSize = newSize + 'px'; }
+});
+
+document.addEventListener('pointerup', async (e) => {
+  if(!_decorResize) return;
+  const { id, startX, startY, startSize } = _decorResize;
+  _decorResize = null;
+  document.querySelectorAll('.shelf-decor.resizing').forEach(el => el.classList.remove('resizing'));
+  const delta = ((e.clientX - startX) + (e.clientY - startY)) / 1.4;
+  const newSize = Math.max(16, Math.min(140, Math.round(startSize + delta)));
+  const d = state.decorations.find(x => x.id === id);
+  if(d){ d.size = newSize; await saveProfile(); persistLocal(); }
+});
+// ────────────────────────────────────────────────────────
 
 // Click on .decor-pick → enter placement mode (ghost follows mouse freely)
 // Click again while in placement mode → place on shelf OR cancel if outside shelf
@@ -1042,6 +1085,8 @@ document.addEventListener('click', async (e) => {
   }
 
   if(!_decorDrag) return;
+  // Ignore clicks on the resize handle or delete button (handled separately)
+  if(e.target.closest('.decor-resize-handle, .decor-del-btn')) return;
 
   const row = e.target.closest('.shelf-row');
   if(!row){

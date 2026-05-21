@@ -986,6 +986,24 @@ a { color: inherit; }
   padding: 0; font-weight: 700;
 }
 .shelf-decor:hover .decor-del-btn { display: flex; }
+
+/* Resize handle — bottom-right corner, drag diagonally */
+.decor-resize-handle {
+  position: absolute;
+  bottom: -7px; right: -7px;
+  width: 14px; height: 14px;
+  background: var(--primary);
+  border: 2px solid rgba(255,255,255,.85);
+  border-radius: 3px;
+  cursor: nwse-resize;
+  display: none;
+  touch-action: none;
+  z-index: 12;
+}
+.shelf-decor:hover .decor-resize-handle { display: block; }
+.shelf-decor.resizing { opacity: .85; }
+.shelf-decor.resizing .decor-resize-handle { display: block; background: var(--primary-hi); }
+
 .book-spine {
   flex: 0 0 auto;
   border: 0; padding: 0; cursor: pointer;
