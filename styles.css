@@ -971,8 +971,16 @@ a { color: inherit; }
   display: flex; align-items: flex-end; justify-content: center;
   filter: drop-shadow(0 2px 6px rgba(0,0,0,.3));
   transition: filter .12s;
+  cursor: grab;
+  touch-action: none;
 }
 .shelf-decor:hover { filter: drop-shadow(0 4px 10px rgba(0,0,0,.45)); }
+.shelf-decor.decor-dragging {
+  cursor: grabbing;
+  opacity: .8;
+  z-index: 20;
+  transition: none; /* no lag during drag */
+}
 .decor-del-btn {
   position: absolute;
   top: -7px; right: -7px;

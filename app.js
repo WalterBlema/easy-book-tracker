@@ -992,6 +992,7 @@ function renderConfig(){
 // ─────────────────────────────────────────────
 let _decorDrag   = null;  // {src, type} while in placement mode
 let _decorResize = null;  // {id, startX, startY, startSize} while resizing
+let _decorMove   = null;  // {id, startX, origPos, rowWidth} while repositioning
 let _pendingCustomSrc = null; // base64 data URL from file upload
 
 /** Render one shelf decoration inline inside a .shelf-row */
@@ -1055,6 +1056,44 @@ document.addEventListener('pointerup', async (e) => {
   const newSize = Math.max(16, Math.min(140, Math.round(startSize + delta)));
   const d = state.decorations.find(x => x.id === id);
   if(d){ d.size = newSize; await saveProfile(); persistLocal(); }
+});
+// ────────────────────────────────────────────────────────
+
+// ── Move placed decoration along its shelf-row ──────────
+document.addEventListener('pointerdown', (e) => {
+  if(_decorDrag || _decorResize) return; // don't interfere with other modes
+  if(e.target.closest('.decor-resize-handle, .decor-del-btn')) return;
+  const decor = e.target.closest('.shelf-decor');
+  if(!decor) return;
+  e.preventDefault();
+  const id  = decor.dataset.did;
+  const d   = state.decorations.find(x => x.id === id);
+  if(!d) return;
+  const row = decor.closest('.shelf-row');
+  if(!row) return;
+  decor.setPointerCapture(e.pointerId);
+  _decorMove = { id, startX: e.clientX, origPos: d.pos ?? 0, rowWidth: row.getBoundingClientRect().width };
+  decor.classList.add('decor-dragging');
+});
+
+document.addEventListener('pointermove', (e) => {
+  if(!_decorMove) return;
+  e.preventDefault();
+  const { id, startX, origPos, rowWidth } = _decorMove;
+  const newPos = Math.max(0.01, Math.min(0.99, origPos + (e.clientX - startX) / rowWidth));
+  const el = document.querySelector(`.shelf-decor[data-did="${id}"]`);
+  if(el) el.style.left = (newPos * 100) + '%';
+});
+
+document.addEventListener('pointerup', async (e) => {
+  if(!_decorMove) return;
+  const { id, startX, origPos, rowWidth } = _decorMove;
+  _decorMove = null;
+  document.querySelectorAll('.shelf-decor.decor-dragging').forEach(el => el.classList.remove('decor-dragging'));
+  const newPos = Math.max(0.01, Math.min(0.99, origPos + (e.clientX - startX) / rowWidth));
+  if(Math.abs(newPos - origPos) < 0.004) return; // barely moved — treat as click, don't save
+  const d = state.decorations.find(x => x.id === id);
+  if(d){ d.pos = newPos; await saveProfile(); persistLocal(); }
 });
 // ────────────────────────────────────────────────────────
 
