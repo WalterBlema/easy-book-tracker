@@ -125,9 +125,9 @@ img { max-width: 100%; display: block; }
   --warn: #f0b14f;
   --danger: #e87878;
   --focus: #ec7a8c;
-  --font-display: "Caveat", cursive;
-  --font-heading: "DM Serif Display", "Playfair Display", serif;
-  --font-body: "Quicksand", "Manrope", sans-serif;
+  --font-display: "Caveat", "Pacifico", cursive;
+  --font-heading: "Cinzel", "DM Serif Display", "Playfair Display", serif;
+  --font-body: "Quicksand", "Nunito", "Manrope", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
   --radius: 20px;
   --radius-lg: 28px;
@@ -140,6 +140,12 @@ img { max-width: 100%; display: block; }
     radial-gradient(900px 800px at 50% 120%, rgba(255,200,215,.5) 0%, transparent 55%),
     linear-gradient(#fff5ee,#ffe7d9);
 }
+/* Doce — typography personality overrides */
+[data-theme="doce"] .panel-title,
+[data-theme="doce"] .card-header h3,
+[data-theme="doce"] h2 { font-family: var(--font-heading); letter-spacing: .04em; }
+[data-theme="doce"] .brand-name { font-family: var(--font-display); font-size: 28px; letter-spacing: .02em; }
+[data-theme="doce"] .tab { font-family: var(--font-body); letter-spacing: .02em; }
 
 /* Editorial (serious, B/W with deep red) */
 [data-theme="editorial"]{
@@ -331,7 +337,7 @@ img { max-width: 100%; display: block; }
 
 html, body {
   background: var(--bg);
-  background-image: var(--bg-pattern);
+  background-image: var(--bg-override, var(--bg-pattern));
   background-attachment: fixed;
   color: var(--text);
   font-family: var(--font-body);
@@ -341,6 +347,52 @@ html, body {
   min-height: 100vh;
 }
 
+/* ════════════════════════════════════════════════════════════
+   WALLPAPERS — override --bg-override on body
+   ════════════════════════════════════════════════════════════ */
+
+/* ─── Biblioteca wallpapers ──────────────────────────────── */
+body.wp-bib-escura { --bg-override: radial-gradient(1200px 700px at 15% -10%, #3a2818 0%, transparent 60%), radial-gradient(900px 600px at 90% 10%, #2a1812 0%, transparent 55%), radial-gradient(1000px 800px at 50% 120%, #2a1a0c 0%, transparent 60%), linear-gradient(#0d0805,#150c06); }
+body.wp-bib-chama  { --bg-override: radial-gradient(900px 600px at 20% 30%, rgba(80,32,8,.9) 0%, transparent 60%), radial-gradient(700px 500px at 80% 60%, rgba(100,40,10,.7) 0%, transparent 55%), radial-gradient(800px 600px at 50% 100%, rgba(60,20,5,.8) 0%, transparent 60%), linear-gradient(160deg,#120804,#1e0e06); }
+body.wp-bib-noite  { --bg-override: radial-gradient(900px 700px at 10% 5%, rgba(20,18,40,.9) 0%, transparent 60%), radial-gradient(700px 600px at 90% 80%, rgba(30,10,25,.7) 0%, transparent 55%), linear-gradient(180deg,#060508,#0c0810); }
+
+/* ─── Pergaminho wallpapers ──────────────────────────────── */
+body.wp-perg-creme { --bg-override: radial-gradient(800px 600px at 10% 0%, rgba(216,196,156,.5) 0%, transparent 60%), radial-gradient(800px 600px at 100% 100%, rgba(200,176,128,.4) 0%, transparent 60%), linear-gradient(#f1e9d5,#e8dec5); }
+body.wp-perg-sepia { --bg-override: radial-gradient(800px 600px at 0% 100%, rgba(180,150,100,.4) 0%, transparent 60%), radial-gradient(900px 700px at 100% 0%, rgba(200,170,120,.35) 0%, transparent 60%), repeating-linear-gradient(0deg, rgba(160,130,80,.04) 0 1px, transparent 1px 20px), linear-gradient(#e8dcc5,#ddd0b0); }
+body.wp-perg-listras { --bg-override: repeating-linear-gradient(45deg, rgba(210,190,148,.6) 0 12px, rgba(230,212,172,.6) 12px 24px), linear-gradient(#efe5cc,#e5d8b8); }
+
+/* ─── Doce wallpapers ────────────────────────────────────── */
+body.wp-doce-padrao   { --bg-override: radial-gradient(900px 700px at 0% 0%, rgba(255,210,200,.6) 0%, transparent 55%), radial-gradient(900px 700px at 100% 0%, rgba(255,225,200,.5) 0%, transparent 55%), radial-gradient(900px 800px at 50% 120%, rgba(255,200,215,.5) 0%, transparent 55%), linear-gradient(#fff5ee,#ffe7d9); }
+body.wp-doce-rosa     { --bg-override: radial-gradient(circle at 20% 20%, oklch(0.92 0.08 10 / 0.9), transparent 40%), radial-gradient(circle at 80% 70%, oklch(0.85 0.12 5 / 0.7), transparent 45%), linear-gradient(135deg, oklch(0.96 0.04 15), oklch(0.92 0.07 10)); }
+body.wp-doce-jardim   { --bg-override: radial-gradient(circle at 30% 30%, oklch(0.88 0.10 140 / 0.5), transparent 50%), radial-gradient(circle at 70% 80%, oklch(0.85 0.12 5 / 0.6), transparent 45%), linear-gradient(160deg, oklch(0.95 0.04 100), oklch(0.93 0.06 10)); }
+body.wp-doce-estrelas { --bg-override: radial-gradient(2px 2px at 20% 30%, oklch(0.95 0.05 60), transparent), radial-gradient(1.5px 1.5px at 70% 20%, oklch(0.95 0.05 60), transparent), radial-gradient(2px 2px at 40% 70%, oklch(0.95 0.05 60), transparent), radial-gradient(1px 1px at 85% 60%, oklch(0.95 0.05 60), transparent), radial-gradient(1.5px 1.5px at 15% 85%, oklch(0.95 0.05 60), transparent), linear-gradient(180deg, oklch(0.32 0.12 320), oklch(0.45 0.15 5)); background-color: oklch(0.30 0.10 320) !important; }
+body.wp-doce-cottage  { --bg-override: repeating-linear-gradient(45deg, oklch(0.94 0.05 15) 0 18px, oklch(0.97 0.03 15) 18px 36px); }
+
+/* ─── Editorial wallpapers ───────────────────────────────── */
+body.wp-edit-branco  { --bg-override: #fafafa; }
+body.wp-edit-grade   { --bg-override: repeating-linear-gradient(0deg, rgba(0,0,0,.04) 0 1px, transparent 1px 24px), repeating-linear-gradient(90deg, rgba(0,0,0,.04) 0 1px, transparent 1px 24px), #fafafa; }
+body.wp-edit-jornal  { --bg-override: repeating-linear-gradient(0deg, rgba(180,10,10,.06) 0 1px, transparent 1px 28px), #f7f4ee; }
+
+/* ─── Cosmos wallpapers ──────────────────────────────────── */
+body.wp-cosmos-padrao  { --bg-override: radial-gradient(2px 2px at 12% 18%, #ffffff, transparent 40%), radial-gradient(2px 2px at 78% 32%, #ffffff, transparent 40%), radial-gradient(1px 1px at 38% 64%, #ffffff, transparent 40%), radial-gradient(1px 1px at 88% 82%, #ffffff, transparent 40%), radial-gradient(800px 500px at 10% 0%, rgba(255,78,184,.22), transparent 60%), radial-gradient(900px 600px at 90% 100%, rgba(78,224,255,.18), transparent 60%), linear-gradient(180deg,#06061a 0%, #0c0c2e 100%); }
+body.wp-cosmos-nebula  { --bg-override: radial-gradient(ellipse at 20% 30%, rgba(138,43,226,.35) 0%, transparent 55%), radial-gradient(ellipse at 80% 70%, rgba(255,78,184,.30) 0%, transparent 55%), radial-gradient(ellipse at 50% 100%, rgba(78,224,255,.20) 0%, transparent 50%), radial-gradient(1px 1px at 30% 20%, #fff, transparent), radial-gradient(2px 2px at 70% 50%, #fff, transparent), linear-gradient(180deg,#06050f,#10082a); }
+body.wp-cosmos-void    { --bg-override: radial-gradient(3px 3px at 15% 25%, rgba(255,255,255,.9), transparent), radial-gradient(2px 2px at 55% 15%, rgba(255,255,255,.7), transparent), radial-gradient(1px 1px at 85% 40%, rgba(255,255,255,.5), transparent), radial-gradient(2px 2px at 40% 80%, rgba(255,255,255,.8), transparent), #04030d; }
+
+/* ─── Botânica wallpapers ────────────────────────────────── */
+body.wp-bot-floresta  { --bg-override: radial-gradient(900px 600px at -5% 100%, rgba(142,184,122,.22), transparent 60%), radial-gradient(800px 600px at 105% 0%, rgba(201,140,88,.18), transparent 60%), linear-gradient(160deg,#1e2a1c,#243424 60%,#1a241a); }
+body.wp-bot-musgo     { --bg-override: radial-gradient(900px 700px at 0% 100%, rgba(120,170,100,.28), transparent 55%), radial-gradient(700px 600px at 100% 0%, rgba(180,210,150,.18), transparent 55%), radial-gradient(500px 400px at 50% 50%, rgba(80,140,60,.12), transparent 65%), linear-gradient(150deg,#243222,#1c2818); }
+body.wp-bot-terracota { --bg-override: radial-gradient(800px 600px at 80% 20%, rgba(201,140,88,.30), transparent 55%), radial-gradient(700px 600px at 10% 80%, rgba(184,80,90,.18), transparent 55%), linear-gradient(160deg,#1e2818,#28220e); }
+
+/* ─── Cyberpunk wallpapers ───────────────────────────────── */
+body.wp-cyber-padrao  { --bg-override: repeating-linear-gradient(0deg, transparent 0 2px, rgba(0,255,136,.025) 2px 3px), repeating-linear-gradient(90deg, transparent 0 60px, rgba(255,0,128,.04) 60px 61px), radial-gradient(600px 400px at 50% 0%, rgba(0,255,136,.05), transparent 60%), #000; }
+body.wp-cyber-matrix  { --bg-override: repeating-linear-gradient(0deg, transparent 0 3px, rgba(0,255,100,.04) 3px 4px), radial-gradient(600px 400px at 50% 50%, rgba(0,200,80,.08), transparent 60%), #000; }
+body.wp-cyber-glitch  { --bg-override: repeating-linear-gradient(0deg, transparent 0 2px, rgba(255,0,120,.03) 2px 3px), repeating-linear-gradient(90deg, transparent 0 60px, rgba(0,200,255,.04) 60px 61px), radial-gradient(600px 400px at 20% 50%, rgba(255,0,120,.06), transparent 60%), #000; }
+
+/* ─── Noir wallpapers ────────────────────────────────────── */
+body.wp-noir-padrao   { --bg-override: radial-gradient(circle at 18% 0%, rgba(212,160,74,.10), transparent 50%), radial-gradient(circle at 82% 100%, rgba(138,26,42,.14), transparent 50%), linear-gradient(#08080a,#101012); }
+body.wp-noir-dourado  { --bg-override: radial-gradient(ellipse at 50% 0%, rgba(212,160,74,.20), transparent 55%), radial-gradient(circle at 20% 90%, rgba(212,160,74,.10), transparent 50%), repeating-linear-gradient(45deg, transparent 0 28px, rgba(212,160,74,.03) 28px 29px), linear-gradient(#09080b,#110e0a); }
+body.wp-noir-veludo   { --bg-override: radial-gradient(ellipse at 30% 20%, rgba(80,20,80,.35), transparent 55%), radial-gradient(ellipse at 80% 80%, rgba(138,26,42,.25), transparent 50%), linear-gradient(160deg,#070509,#10060e); }
+
 a { color: inherit; }
 
 /* ════════════════════════════════════════════════════════════
@@ -348,82 +400,185 @@ a { color: inherit; }
    ════════════════════════════════════════════════════════════ */
 .screen { min-height: 100vh; }
 
+/* ─── Fullscreen hero layout ───────────────────────────────── */
 .login {
-  display: grid;
-  grid-template-columns: 1fr 480px;
   min-height: 100vh;
-}
-@media (max-width: 900px){
-  .login { grid-template-columns: 1fr; }
-  .login-art { display: none; }
-}
-
-.login-art {
   position: relative;
-  background:
-    radial-gradient(700px 500px at 50% 100%, color-mix(in srgb, var(--primary) 18%, transparent), transparent 70%),
-    var(--bg-pattern);
-  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 40px 16px;
 }
-.art-stack {
-  display: flex; gap: 4px;
-  height: 320px;
-  align-items: flex-end;
-  transform: rotate(-2deg);
-}
-.art-book { width: 50px; border-radius: 4px 4px 1px 1px; box-shadow: 0 8px 14px rgba(0,0,0,.25); }
-.art-book.b1{ height: 280px; background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 60%, #000));}
-.art-book.b2{ height: 240px; background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 60%, #000)); }
-.art-book.b3{ height: 300px; background: linear-gradient(135deg, var(--accent-2), color-mix(in srgb, var(--accent-2) 60%, #000)); width: 70px;}
-.art-book.b4{ height: 260px; background: linear-gradient(135deg, var(--success), color-mix(in srgb, var(--success) 60%, #000)); }
-.art-book.b5{ height: 220px; background: linear-gradient(135deg, var(--warn), color-mix(in srgb, var(--warn) 60%, #000)); width: 60px;}
 
-.art-quote {
-  position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
-  font-family: var(--font-display);
-  font-size: 30px;
-  text-align: center;
-  color: var(--text-2);
-  line-height: 1.15;
-  text-wrap: pretty;
-  max-width: 80%;
+.login-hero-bg {
+  position: fixed;
+  inset: 0;
+  background: url('hero-bookshelf.jpg') center / cover no-repeat;
+  z-index: 0;
 }
-[data-theme="editorial"] .art-quote { font-size: 26px; font-style: italic; }
-[data-theme="doce"] .art-quote { font-size: 38px; color: var(--primary); }
 
-.login-card {
-  background: var(--surface);
-  padding: 56px 48px;
+.login-hero-overlay {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 30% 40%, rgba(80, 15, 35, 0.55) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 70%, rgba(40, 8, 20, 0.40) 0%, transparent 55%),
+    linear-gradient(160deg, rgba(50, 10, 25, 0.65) 0%, rgba(20, 5, 12, 0.45) 100%);
+  z-index: 1;
+}
+
+.login-center {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  border-left: 1px solid var(--border);
-  box-shadow: var(--shadow);
+  align-items: center;
+  gap: 28px;
+  width: 100%;
+  max-width: 460px;
 }
 
-.brand-mark { text-align: center; margin-bottom: 32px; }
-.brand-icon { font-size: 36px; display: block; margin-bottom: 6px; }
+/* ─── Login header ─────────────────────────────────────────── */
+.login-header { text-align: center; }
+
+.login-eyebrow {
+  margin: 0 0 10px;
+  font-family: 'Cinzel', 'Cormorant Garamond', serif;
+  font-size: 11px;
+  letter-spacing: .45em;
+  text-transform: uppercase;
+  color: rgba(255, 242, 225, 0.82);
+}
+
+.login-brand-name {
+  margin: 0 0 12px;
+  font-family: 'Cinzel', 'Cormorant Garamond', serif;
+  font-weight: 600;
+  font-size: clamp(36px, 8vw, 58px);
+  line-height: 1.1;
+  color: #fff8f0;
+  text-shadow: 0 4px 32px rgba(76, 5, 25, 0.7), 0 1px 0 rgba(0,0,0,.3);
+  letter-spacing: .02em;
+}
+
+.login-subtitle {
+  margin: 0;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 15px;
+  color: rgba(255, 238, 215, 0.85);
+  letter-spacing: .02em;
+}
+
+/* ─── Login card ───────────────────────────────────────────── */
+.login-card {
+  width: 100%;
+  background: rgba(255, 247, 238, 0.96);
+  backdrop-filter: blur(20px) saturate(130%);
+  border-radius: 28px;
+  padding: 40px;
+  box-shadow:
+    0 30px 60px -20px rgba(76, 5, 25, 0.50),
+    0 0 0 1px rgba(200, 140, 120, 0.18);
+  /* Override CSS vars for light-cream context */
+  --surface:   rgba(255, 255, 255, 0.85);
+  --surface-2: rgba(248, 238, 228, 0.9);
+  --surface-3: rgba(238, 222, 210, 0.9);
+  --border:    rgba(190, 130, 108, 0.28);
+  --text:      #2a1c14;
+  --text-2:    #3a2820;
+  --text-dim:  #9a6450;
+  --primary:   #b03050;
+  --primary-hi:#d04868;
+  --primary-text: #fff8f0;
+  --focus:     #b03050;
+  --danger:    #b04040;
+  --radius:    14px;
+  --radius-sm: 8px;
+}
+
+/* ─── Login mode tabs ──────────────────────────────────────── */
+.login-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(180, 120, 100, 0.12);
+  border-radius: 999px;
+  margin-bottom: 28px;
+}
+
+.login-tab {
+  flex: 1;
+  padding: 10px 20px;
+  border: 0;
+  border-radius: 999px;
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #9a6450;
+  background: transparent;
+  cursor: pointer;
+  transition: background .22s, color .22s, box-shadow .22s;
+}
+.login-tab.active {
+  background: #8a2030;
+  color: #fff8f0;
+  box-shadow: 0 2px 14px rgba(138, 32, 48, 0.42);
+}
+.login-tab:not(.active):hover { background: rgba(180,120,100,.15); color: #7a3828; }
+
+/* Google button in login card */
+.login-google-btn {
+  width: 100%;
+  background: rgba(255,255,255,0.85);
+  border-radius: 14px;
+}
+.login-google-btn:hover { background: rgba(255,248,244,1); }
+
+/* Primary button in login card */
+.login-card .btn-primary {
+  background: linear-gradient(155deg, #c84060 0%, #8a2030 100%);
+  border-color: #8a2030;
+  color: #fff8f0;
+  box-shadow: 0 4px 16px -4px rgba(138,32,48,.5);
+}
+.login-card .btn-primary:hover {
+  background: linear-gradient(155deg, #d85070 0%, #a02840 100%);
+  border-color: #a02840;
+}
+
+/* Quote at bottom */
+.login-quote {
+  margin: 0;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 14px;
+  line-height: 1.65;
+  color: rgba(255, 238, 215, 0.72);
+  text-align: center;
+}
+.login-quote-author {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  letter-spacing: .04em;
+  opacity: .85;
+  font-style: normal;
+}
+
+/* ─── App brand name (top nav) ─────────────────────────────── */
 .brand-name {
   margin: 0;
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: clamp(34px, 4vw, 48px);
+  font-size: clamp(18px, 2.2vw, 24px);
   line-height: 1.1;
   color: var(--primary);
 }
 [data-theme="editorial"] .brand-name { font-weight: 700; color: var(--text); font-style: italic; }
-[data-theme="doce"] .brand-name { font-size: 56px; color: var(--primary); }
-.brand-tagline {
-  margin: 6px 0 0;
-  font-size: 13px;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: var(--text-dim);
-}
-[data-theme="doce"] .brand-tagline { text-transform: none; font-size: 16px; font-family: var(--font-display); letter-spacing: 0; color: var(--text-dim); }
+[data-theme="doce"] .brand-name { font-size: 26px; color: var(--primary); }
 
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 10px;
@@ -964,8 +1119,8 @@ a { color: inherit; }
 /* Inline shelf decoration (emoji or image placed by user) */
 .shelf-decor {
   position: absolute;
-  bottom: 20px; /* sit on top of the plank */
-  transform: translateX(-50%);
+  /* bottom is set inline via yPos — default 0% = at plank */
+  transform: translateX(-50%) translateY(var(--decor-ty, 0%));
   pointer-events: auto;
   z-index: 6;
   display: flex; align-items: flex-end; justify-content: center;
@@ -1420,6 +1575,38 @@ a { color: inherit; }
 .tp-noir::before { top: 6px; left: 6px; border-right: 0; border-bottom: 0; }
 .tp-noir::after { bottom: 6px; right: 6px; border-left: 0; border-top: 0; }
 .tp-noir .tp-h { color: #d4a04a; font-style: italic; font-family: "Bodoni Moda", serif; }
+
+/* ─── Wallpaper picker ───────────────────────────────────── */
+.wallpaper-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+.wp-card {
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform .12s, border-color .15s, box-shadow .15s;
+  background: var(--surface-2);
+}
+.wp-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-card); }
+.wp-card.is-active { border-color: var(--primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 40%, transparent); }
+.wp-swatch {
+  height: 56px;
+  width: 100%;
+}
+.wp-label {
+  padding: 6px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 /* ─── Config grid ─── */
 .config-grid {

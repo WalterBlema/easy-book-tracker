@@ -347,11 +347,71 @@ function getThemePalette(){
   return THEME_PALETTES[state.theme] || THEME_PALETTES.default;
 }
 
+const VALID_THEMES = ['biblioteca','pergaminho','doce','editorial','cosmos','botanica','cyberpunk','noir'];
+
+const DEFAULT_WALLPAPERS = {
+  biblioteca: 'wp-bib-escura',
+  pergaminho: 'wp-perg-creme',
+  doce:       'wp-doce-padrao',
+  editorial:  'wp-edit-branco',
+  cosmos:     'wp-cosmos-padrao',
+  botanica:   'wp-bot-floresta',
+  cyberpunk:  'wp-cyber-padrao',
+  noir:       'wp-noir-padrao',
+};
+
+/* Wallpaper catalogue — one entry per theme */
+const WALLPAPERS = {
+  biblioteca: [
+    { cls: 'wp-bib-escura', label: 'Madeira escura', bg: 'linear-gradient(135deg,#1a0e06,#3a2818)' },
+    { cls: 'wp-bib-chama',  label: 'Brasa viva',     bg: 'linear-gradient(135deg,#1e0c04,#4a1c08)' },
+    { cls: 'wp-bib-noite',  label: 'Meia-noite',     bg: 'linear-gradient(135deg,#060408,#1a1230)' },
+  ],
+  pergaminho: [
+    { cls: 'wp-perg-creme',   label: 'Creme',   bg: 'linear-gradient(135deg,#f1e9d5,#e8dec5)' },
+    { cls: 'wp-perg-sepia',   label: 'Sépia',   bg: 'linear-gradient(135deg,#e8dcc5,#d8c8a8)' },
+    { cls: 'wp-perg-listras', label: 'Listrado',bg: 'repeating-linear-gradient(45deg,#e8d8c0 0 10px,#f0e4cc 10px 20px)' },
+  ],
+  doce: [
+    { cls: 'wp-doce-padrao',   label: 'Pêssego',        bg: 'linear-gradient(135deg,#fff0e5,#ffd0b0)' },
+    { cls: 'wp-doce-rosa',     label: 'Rosa clássico',  bg: 'linear-gradient(135deg,#fce8e8,#f8d0d8)' },
+    { cls: 'wp-doce-jardim',   label: 'Jardim',         bg: 'linear-gradient(135deg,#e8f5e8,#f0e8e8)' },
+    { cls: 'wp-doce-estrelas', label: 'Noite estrelada',bg: 'linear-gradient(135deg,#1a0a28,#380a28)' },
+    { cls: 'wp-doce-cottage',  label: 'Cottage',        bg: 'repeating-linear-gradient(45deg,#f5e8e0 0 10px,#fdf2ec 10px 20px)' },
+  ],
+  editorial: [
+    { cls: 'wp-edit-branco', label: 'Branco puro', bg: '#fafafa' },
+    { cls: 'wp-edit-grade',  label: 'Grade sutil', bg: 'repeating-linear-gradient(0deg,rgba(0,0,0,.05) 0 1px,transparent 1px 24px),#fafafa' },
+    { cls: 'wp-edit-jornal', label: 'Pauta',       bg: 'repeating-linear-gradient(0deg,rgba(180,10,10,.07) 0 1px,transparent 1px 28px),#f7f4ee' },
+  ],
+  cosmos: [
+    { cls: 'wp-cosmos-padrao', label: 'Galáxia neon', bg: 'linear-gradient(135deg,#06061a,#0c1040)' },
+    { cls: 'wp-cosmos-nebula', label: 'Nebulosa',     bg: 'linear-gradient(135deg,#06050f,#2a0830)' },
+    { cls: 'wp-cosmos-void',   label: 'Vazio estelar',bg: '#04030d' },
+  ],
+  botanica: [
+    { cls: 'wp-bot-floresta',  label: 'Floresta',  bg: 'linear-gradient(135deg,#1e2a1c,#243424)' },
+    { cls: 'wp-bot-musgo',     label: 'Musgo',     bg: 'linear-gradient(135deg,#1c2818,#243222)' },
+    { cls: 'wp-bot-terracota', label: 'Terracota', bg: 'linear-gradient(135deg,#1e2818,#28220e)' },
+  ],
+  cyberpunk: [
+    { cls: 'wp-cyber-padrao', label: 'Scan verde',     bg: '#000' },
+    { cls: 'wp-cyber-matrix', label: 'Matrix',         bg: 'linear-gradient(135deg,#000,#001200)' },
+    { cls: 'wp-cyber-glitch', label: 'Glitch magenta', bg: 'linear-gradient(135deg,#000,#080010)' },
+  ],
+  noir: [
+    { cls: 'wp-noir-padrao',  label: 'Onyx',    bg: 'linear-gradient(135deg,#08080a,#101012)' },
+    { cls: 'wp-noir-dourado', label: 'Dourado', bg: 'linear-gradient(135deg,#090808,#110e0a)' },
+    { cls: 'wp-noir-veludo',  label: 'Veludo',  bg: 'linear-gradient(135deg,#070509,#10060e)' },
+  ],
+};
+
 const state = {
   user: null,                       // {uid, email, name, photo, isGuest}
   books: [],
   decorations: [],
   theme: 'biblioteca',
+  wallpapers: { ...DEFAULT_WALLPAPERS },
   lists: { ...DEFAULT_LISTS },
   loading: false,
   unsubscribers: [],                // firestore listeners to cleanup
@@ -375,6 +435,7 @@ function lsWrite(data){
 function lsSnapshot(){
   return {
     theme: state.theme,
+    wallpapers: state.wallpapers,
     lists: state.lists,
     books: state.books,
     decorations: state.decorations,
@@ -428,6 +489,7 @@ async function saveProfile(){
     displayName: state.user.name,
     photoURL: state.user.photo,
     theme: state.theme,
+    wallpapers: state.wallpapers,
     lists: state.lists,
     decorations: state.decorations,
     updatedAt: Date.now(),
@@ -444,6 +506,7 @@ async function loadFromFirestore(){
   if(profSnap.exists()){
     const p = profSnap.data();
     state.theme = p.theme || 'biblioteca';
+    state.wallpapers = { ...DEFAULT_WALLPAPERS, ...(p.wallpapers || {}) };
     state.lists = p.lists || { ...DEFAULT_LISTS };
     state.decorations = p.decorations || [];
   }
@@ -462,6 +525,7 @@ function loadFromLocal(){
   const data = lsRead();
   if(data){
     state.theme = data.theme || 'biblioteca';
+    state.wallpapers = { ...DEFAULT_WALLPAPERS, ...(data.wallpapers || {}) };
     state.lists = data.lists || { ...DEFAULT_LISTS };
     state.books = data.books || [];
     state.decorations = data.decorations || [];
@@ -577,18 +641,50 @@ function showAuthError(msg){
 }
 
 // ─────────────────────────────────────────────
-// THEME
+// THEME & WALLPAPER
 // ─────────────────────────────────────────────
+function applyWallpaper(wpCls){
+  const toRemove = [...document.body.classList].filter(c => c.startsWith('wp-'));
+  toRemove.forEach(c => document.body.classList.remove(c));
+  if(wpCls) document.body.classList.add(wpCls);
+}
+
 function applyTheme(theme){
-  if(!['biblioteca','pergaminho','doce','editorial','cosmos','botanica','cyberpunk','noir'].includes(theme)) theme = 'biblioteca';
+  if(!VALID_THEMES.includes(theme)) theme = 'biblioteca';
   state.theme = theme;
   document.documentElement.setAttribute('data-theme', theme);
   document.querySelectorAll('.theme-card').forEach(c => c.classList.toggle('is-active', c.dataset.theme === theme));
+  // Apply the saved wallpaper for this theme (fallback to default)
+  const wpCls = (state.wallpapers || {})[theme] || DEFAULT_WALLPAPERS[theme];
+  applyWallpaper(wpCls);
+  renderWallpaperPicker();
 }
+
 async function setTheme(theme){
   applyTheme(theme);
-  await saveProfile();
+  await saveProfile(); persistLocal();
   toast('Tema aplicado · ' + theme);
+}
+
+async function setWallpaper(wpCls){
+  if(!state.wallpapers) state.wallpapers = { ...DEFAULT_WALLPAPERS };
+  state.wallpapers[state.theme] = wpCls;
+  applyWallpaper(wpCls);
+  renderWallpaperPicker();
+  await saveProfile(); persistLocal();
+}
+
+function renderWallpaperPicker(){
+  const el = document.getElementById('wallpaper-picker');
+  if(!el) return;
+  const opts = WALLPAPERS[state.theme] || [];
+  const current = (state.wallpapers || {})[state.theme] || opts[0]?.cls;
+  el.innerHTML = opts.map(w => `
+    <button class="wp-card${w.cls === current ? ' is-active' : ''}" data-wp="${escapeHtml(w.cls)}" title="${escapeHtml(w.label)}">
+      <div class="wp-swatch" style="background:${w.bg};"></div>
+      <div class="wp-label">${escapeHtml(w.label)}</div>
+    </button>
+  `).join('');
 }
 
 // ─────────────────────────────────────────────
@@ -985,6 +1081,7 @@ function renderConfig(){
   renderList('genres','list-genres');
   renderList('statuses','list-statuses');
   renderList('formats','list-formats');
+  renderWallpaperPicker();
 }
 
 // ─────────────────────────────────────────────
@@ -1000,10 +1097,12 @@ function renderShelfDecorEl(d){
   const src  = d.src || d.emoji || '';
   const type = d.type || (src.startsWith('data:') || src.startsWith('http') ? 'img' : 'emoji');
   const size = d.size || 36;
+  const xPct = ((d.pos  || 0) * 100).toFixed(2);
+  const yPct = ((d.yPos || 0) * 100).toFixed(2);
   const inner = type === 'img'
     ? `<img src="${attr(src)}" alt="" draggable="false" style="width:${size}px;height:${size}px;object-fit:contain;">`
     : `<span style="font-size:${size}px;line-height:1;">${escapeHtml(src)}</span>`;
-  return `<div class="shelf-decor" data-did="${d.id}" style="left:${(d.pos||0)*100}%;">
+  return `<div class="shelf-decor" data-did="${d.id}" style="left:${xPct}%;bottom:${yPct}%;">
     ${inner}
     <button class="decor-del-btn"    data-did="${d.id}" title="Remover">×</button>
     <div    class="decor-resize-handle" data-did="${d.id}" title="Redimensionar"></div>
@@ -1059,7 +1158,7 @@ document.addEventListener('pointerup', async (e) => {
 });
 // ────────────────────────────────────────────────────────
 
-// ── Move placed decoration along its shelf-row ──────────
+// ── Move placed decoration (X + Y) within its shelf-row ─
 document.addEventListener('pointerdown', (e) => {
   if(_decorDrag || _decorResize) return; // don't interfere with other modes
   if(e.target.closest('.decor-resize-handle, .decor-del-btn')) return;
@@ -1071,29 +1170,44 @@ document.addEventListener('pointerdown', (e) => {
   if(!d) return;
   const row = decor.closest('.shelf-row');
   if(!row) return;
+  const rowRect = row.getBoundingClientRect();
   decor.setPointerCapture(e.pointerId);
-  _decorMove = { id, startX: e.clientX, origPos: d.pos ?? 0, rowWidth: row.getBoundingClientRect().width };
+  _decorMove = {
+    id,
+    startX: e.clientX, startY: e.clientY,
+    origPos:  d.pos  ?? 0,
+    origYPos: d.yPos ?? 0,
+    rowWidth: rowRect.width,
+    rowHeight: rowRect.height,
+  };
   decor.classList.add('decor-dragging');
 });
 
 document.addEventListener('pointermove', (e) => {
   if(!_decorMove) return;
   e.preventDefault();
-  const { id, startX, origPos, rowWidth } = _decorMove;
-  const newPos = Math.max(0.01, Math.min(0.99, origPos + (e.clientX - startX) / rowWidth));
+  const { id, startX, startY, origPos, origYPos, rowWidth, rowHeight } = _decorMove;
+  const newPos  = Math.max(0.01, Math.min(0.99, origPos  + (e.clientX - startX) / rowWidth));
+  // Y: dragging up = higher (larger bottom%), dragging down = lower
+  const newYPos = Math.max(0,    Math.min(0.90, origYPos - (e.clientY - startY) / rowHeight));
   const el = document.querySelector(`.shelf-decor[data-did="${id}"]`);
-  if(el) el.style.left = (newPos * 100) + '%';
+  if(el){
+    el.style.left   = (newPos  * 100) + '%';
+    el.style.bottom = (newYPos * 100) + '%';
+  }
 });
 
 document.addEventListener('pointerup', async (e) => {
   if(!_decorMove) return;
-  const { id, startX, origPos, rowWidth } = _decorMove;
+  const { id, startX, startY, origPos, origYPos, rowWidth, rowHeight } = _decorMove;
   _decorMove = null;
   document.querySelectorAll('.shelf-decor.decor-dragging').forEach(el => el.classList.remove('decor-dragging'));
-  const newPos = Math.max(0.01, Math.min(0.99, origPos + (e.clientX - startX) / rowWidth));
-  if(Math.abs(newPos - origPos) < 0.004) return; // barely moved — treat as click, don't save
+  const newPos  = Math.max(0.01, Math.min(0.99, origPos  + (e.clientX - startX) / rowWidth));
+  const newYPos = Math.max(0,    Math.min(0.90, origYPos - (e.clientY - startY) / rowHeight));
+  // Barely moved — treat as click, don't save
+  if(Math.abs(newPos - origPos) < 0.004 && Math.abs(newYPos - origYPos) < 0.008) return;
   const d = state.decorations.find(x => x.id === id);
-  if(d){ d.pos = newPos; await saveProfile(); persistLocal(); }
+  if(d){ d.pos = newPos; d.yPos = newYPos; await saveProfile(); persistLocal(); }
 });
 // ────────────────────────────────────────────────────────
 
@@ -1141,7 +1255,7 @@ document.addEventListener('click', async (e) => {
   const rowIdx = parseInt(row.dataset.row) || 0;
   const rect   = row.getBoundingClientRect();
   const pos    = Math.max(0.02, Math.min(0.98, (e.clientX - rect.left) / rect.width));
-  state.decorations.push({ id: uid(), src, type, genre, row: rowIdx, pos, size: type === 'img' ? 48 : 36 });
+  state.decorations.push({ id: uid(), src, type, genre, row: rowIdx, pos, yPos: 0, size: type === 'img' ? 48 : 36 });
   await saveProfile(); persistLocal();
   renderPainel();
   toast('Decoração adicionada ✨');
@@ -1472,21 +1586,31 @@ function rerenderAll(){
 function wire(){
   // Login form
   let isCreateMode = false;
-  document.getElementById('btn-google').addEventListener('click', signInGoogle);
-  document.getElementById('btn-toggle-mode').addEventListener('click', () => {
-    isCreateMode = !isCreateMode;
+
+  function setLoginMode(create){
+    isCreateMode = create;
     document.getElementById('btn-submit-email').textContent = isCreateMode ? 'Criar conta' : 'Entrar';
-    document.getElementById('btn-toggle-mode').textContent = isCreateMode ? 'Já tenho conta' : 'Criar conta';
+    // sync visual tabs
+    document.querySelectorAll('.login-tab').forEach(t =>
+      t.classList.toggle('active', t.dataset.mode === (isCreateMode ? 'signup' : 'login'))
+    );
     // show/hide confirm-password field
     const fieldConfirm = document.getElementById('field-confirm');
     const confirmInput = document.getElementById('password-confirm');
     fieldConfirm.hidden = !isCreateMode;
     confirmInput.required = isCreateMode;
-    if (!isCreateMode) confirmInput.value = '';
-    // swap autocomplete hint for password field
+    if(!isCreateMode) confirmInput.value = '';
+    // swap autocomplete hint
     document.getElementById('password').autocomplete = isCreateMode ? 'new-password' : 'current-password';
     document.getElementById('auth-error').hidden = true;
-  });
+  }
+
+  document.getElementById('btn-google').addEventListener('click', signInGoogle);
+  document.getElementById('btn-toggle-mode').addEventListener('click', () => setLoginMode(!isCreateMode));
+  // Visual tabs (new design)
+  document.querySelectorAll('.login-tab').forEach(t =>
+    t.addEventListener('click', () => setLoginMode(t.dataset.mode === 'signup'))
+  );
   document.getElementById('form-email').addEventListener('submit', (e) => {
     e.preventDefault();
     const errEl = document.getElementById('auth-error');
@@ -1632,6 +1756,12 @@ function wire(){
     if(card) setTheme(card.dataset.theme);
   });
 
+  // Wallpaper picker (delegate — picker is re-rendered dynamically)
+  document.getElementById('wallpaper-picker').addEventListener('click', async (e) => {
+    const card = e.target.closest('.wp-card');
+    if(card) await setWallpaper(card.dataset.wp);
+  });
+
   // Editable lists
   document.querySelectorAll('.add-row button').forEach(b => {
     b.addEventListener('click', async () => {
@@ -1724,7 +1854,6 @@ function wire(){
     const url = document.getElementById('f-cover-url').value.trim();
     if(url){ setVal('f-cover', url); paintCoverPreview(url); toast('Capa aplicada ✓'); }
   });
-  // Aplica ao digitar/colar (com debounce básico)
   let coverUrlTimer = null;
   document.getElementById('f-cover-url').addEventListener('input', (e) => {
     clearTimeout(coverUrlTimer);
@@ -1746,7 +1875,6 @@ function wire(){
 }
 
 function openDecorDrawer(){
-  // Reset search + category to defaults
   _decorActiveCat = 'tema';
   const searchEl = document.getElementById('decor-search');
   if(searchEl) searchEl.value = '';
@@ -1767,7 +1895,7 @@ function surpriseTBR(){
   if(tbr.length === 0){ toast('Adicione livros à lista Para ler primeiro 📚'); return; }
   const pick = tbr[Math.floor(Math.random()*tbr.length)];
   openBookModal(pick);
-  toast(`Que tal "${pick.title}"? 🎲`);
+  toast('Que tal "' + pick.title + '"? 🎲');
 }
 
 function exportJSON(){
@@ -1775,7 +1903,7 @@ function exportJSON(){
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = `easy-book-tracker-${new Date().toISOString().slice(0,10)}.json`;
+  a.href = url; a.download = 'diario-de-leitura-' + new Date().toISOString().slice(0,10) + '.json';
   a.click();
   URL.revokeObjectURL(url);
   toast('Exportado ✓','success');
@@ -1785,11 +1913,12 @@ async function handleImport(e){
   if(!f) return;
   try {
     const data = JSON.parse(await f.text());
-    if(!confirm(`Importar ${data.books?.length||0} livro(s)? Os atuais serão mantidos.`)) return;
+    if(!confirm('Importar ' + (data.books?.length||0) + ' livro(s)? Os atuais serão mantidos.')) return;
     (data.books||[]).forEach(b => { b.id = b.id || uid(); });
     state.books = [...state.books, ...(data.books||[])];
     if(data.lists) state.lists = data.lists;
     if(data.theme) applyTheme(data.theme);
+    if(data.wallpapers) state.wallpapers = { ...DEFAULT_WALLPAPERS, ...data.wallpapers };
     if(data.decorations) state.decorations = data.decorations;
     persistLocal();
     if(!state.user?.isGuest && FIREBASE_ENABLED){
@@ -1813,13 +1942,9 @@ async function wipeAll(){
   rerenderAll(); toast('Tudo apagado','success');
 }
 
-// ─────────────────────────────────────────────
+// ===========================================
 // BOOT
-// ──────────
-
-// ═══════════════════════════════════════════
-// BOOT
-// ═══════════════════════════════════════════
+// ===========================================
 function initIcons(){
   if(window.lucide) window.lucide.createIcons();
 }
@@ -1829,7 +1954,6 @@ async function boot(){
   renderDecorPalette();
   initIcons();
 
-  // Initial tab from hash
   const hash = (location.hash || '#painel').slice(1);
   if(['painel','tabela','resenhas','wishlist','tbr','config'].includes(hash)){
     activateTab(hash);
@@ -1838,7 +1962,6 @@ async function boot(){
   if(FIREBASE_ENABLED){
     const { auth, authMod } = await fb();
 
-    // Handle Google redirect result (returns from Google OAuth)
     try {
       await authMod.getRedirectResult(auth);
     } catch(e){
