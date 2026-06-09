@@ -347,7 +347,7 @@ function getThemePalette(){
   return THEME_PALETTES[state.theme] || THEME_PALETTES.default;
 }
 
-const VALID_THEMES = ['biblioteca','pergaminho','doce','editorial','cosmos','botanica','cyberpunk','noir'];
+const VALID_THEMES = ['biblioteca','pergaminho','doce','editorial','cosmos','botanica','cyberpunk','noir','lofi'];
 
 const DEFAULT_WALLPAPERS = {
   biblioteca: 'wp-bib-escura',
@@ -358,6 +358,7 @@ const DEFAULT_WALLPAPERS = {
   botanica:   'wp-bot-floresta',
   cyberpunk:  'wp-cyber-padrao',
   noir:       'wp-noir-padrao',
+  lofi:       'wp-lofi-animado',
 };
 
 /* Wallpaper catalogue — one entry per theme */
@@ -403,6 +404,11 @@ const WALLPAPERS = {
     { cls: 'wp-noir-padrao',  label: 'Onyx',    bg: 'linear-gradient(135deg,#08080a,#101012)' },
     { cls: 'wp-noir-dourado', label: 'Dourado', bg: 'linear-gradient(135deg,#090808,#110e0a)' },
     { cls: 'wp-noir-veludo',  label: 'Veludo',  bg: 'linear-gradient(135deg,#070509,#10060e)' },
+  ],
+  lofi: [
+    { cls: 'wp-lofi-animado', label: '▶ Animado',   bg: 'linear-gradient(135deg,#0a1a20,#213d44)' },
+    { cls: 'wp-lofi-teal',    label: 'Teal estático',bg: 'linear-gradient(135deg,#0a1a20,#112932)' },
+    { cls: 'wp-lofi-pixel',   label: 'Grade pixel', bg: 'linear-gradient(135deg,#0a1a20,#0e2028)' },
   ],
 };
 
